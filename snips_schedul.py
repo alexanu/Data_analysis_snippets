@@ -48,3 +48,36 @@ def bob_job():
 
 if __name__ == '__main__':
     bob_job()
+
+
+#-----------------------------------------------------------------------------------------------
+...
+
+lMessages = []
+
+for symbol in aSymbols:
+    ...
+    if not after_opening_rang_bars.empty:
+        if symbol not in existing_order_symbols:
+            if not after_opening_rang_breakout.empty:
+                ...
+                lMessages.append(f"Placing order for {symbol} at {limit_price}, closed_above {opening_range_high} \n\n {after_opening_rang_breakout.iloc[0]}")
+                print(f"Placing order for {symbol} at {limit_price}, closed_above {opening_range_high} at {after_opening_rang_breakout.iloc[0]}")
+                ...
+
+        else:
+            print(f"Already an order for {symbol}, skipping")
+
+print(EMAIL_ADDRESS)
+print(EMAIL_PASSWORD)
+with smtplib.SMTP_SSL(EMAIL_HOST, EMAIL_PORT, context=context) as server:
+    server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+
+    email_message = f"Subject: Trade Notifications for {current_date}\n\n"
+    email_message += "\n".join(lMessages)
+
+    server.sendmail(EMAIL_ADDRESS, EMAIL_ADDRESS, email_message)
+
+#--------------------------------------------------------------------------------------------------------------
+
+

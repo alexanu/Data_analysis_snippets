@@ -23,6 +23,29 @@ read_file['Date'] = pd.to_datetime(read_file['Date']+' '+read_file['Time'] # mer
                                     , format='%d.%m.%Y %H:%M') # adding format makes converting much faster
 
 
+
+#---------------------------------------------------------------------------------------------------
+
+df = pd.DataFrame({'date': [1470195805, 1480195805, 1490195805], 'value': [2, 3, 4]})
+pd.to_datetime(df['date'], unit='s')
+df['date'].astype('datetime64[s]')
+df = pd.DataFrame({'date_start': ['3/10/2000', '3/11/2000', '3/12/2000'],
+                   'date_end': ['3/11/2000', '3/12/2000', '3/13/2000'],
+                   'value': [2, 3, 4]})
+df = df.astype({'date_start': 'datetime64','date_end': 'datetime64'})
+
+df = pd.DataFrame({'date': ['3/10/2000', 'a/11/2000', '3/12/2000'], 'value': [2, 3, 4]})
+df['date'] = pd.to_datetime(df['date'], errors='coerce')
+
+
+
+
+df = pd.DataFrame({'year': [2015, 2016], 'month': [2, 3], 'day': [4, 5], 'hour': [10,11]})
+pd.to_datetime(df[['month','day','year']])
+pd.to_datetime(df)
+
+
+
 #----------------------------------------------------------------------------------------------------
 
 
@@ -311,6 +334,7 @@ for ETF in SPDR_ETF:
             return rrule(DAILY, dtstart=start_date, until=end_date, byweekday=(MO,TU,WE,TH,FR))
 
         for tr_date in daterange(start_date, end_date):
+            print()
 
     # itertools through biz days
 
@@ -992,3 +1016,39 @@ def get_history(self, symbol, interval = Span.DAY, span = Span.YEAR, bounds = Bo
         df.drop(["stop"], axis=1, inplace=True)
         return df
 
+
+# Market open?
+
+ #could add functionality to generalize which market, right now configured for U.S. Market
+    @property
+    def pre_market_open(self)-> bool:
+        pre_market_start_time = datetime.now().replace(hour=12, minute=00, second=00, tzinfo=timezone.utc).timestamp()
+        market_start_time = datetime.now().replace(hour=13, minute=30, second=00, tzinfo=timezone.utc).timestamp()
+        right_now = datetime.now().replace(tzinfo=timezone.utc).timestamp()
+
+        if market_start_time >= right_now >= pre_market_start_time:
+            return True
+        else:
+            return False
+
+    @property
+    def post_market_open(self)-> bool:
+        post_market_end_time = datetime.now().replace(hour=22, minute=30, second=00, tzinfo=timezone.utc).timestamp()
+        market_end_time = datetime.now().replace(hour=20, minute=00, second=00, tzinfo=timezone.utc).timestamp()
+        right_now = datetime.now().replace(tzinfo=timezone.utc).timestamp()
+
+        if post_market_end_time >= right_now >= market_end_time:
+            return True
+        else:
+            return False
+
+    @property
+    def regular_market_open(self)-> bool:
+        market_start_time = datetime.now().replace(hour=13, minute=30, second=00, tzinfo=timezone.utc).timestamp()
+        market_end_time = datetime.now().replace(hour=20, minute=00, second=00, tzinfo=timezone.utc).timestamp()
+        right_now = datetime.now().replace(tzinfo=timezone.utc).timestamp()
+
+        if market_end_time >= right_now >= market_start_time:
+            return True
+        else:
+            return False

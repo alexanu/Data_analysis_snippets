@@ -445,3 +445,16 @@
     config.read(Path_To_TKNS)
     token=config['FinnHub']['access_token']
 
+
+# REad environ variables for storing secrets
+
+    import os
+''' type in terminal: set EMAIL_MAIN=oanufriyev@gmail.com'''
+
+    EMAIL_ADDRESS = os.environ.get('EMAIL_MAIN')
+    print(os.environ.get('EMAIL_MAIN'))
+    print(os.environ)
+    os.environ.get('USER')
+
+    XXX = os.getenv('EMAIL_MAIN')
+

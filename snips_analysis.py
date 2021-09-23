@@ -857,6 +857,16 @@ import datetime
                                                     aggfunc=np.mean).fillna(0)
 
 
+        labels=['Gen X', 'Boomer', 'Greatest']
+        df = pd.DataFrame({'age': [2, 67, 40, 32, 4, 15, 82, 99, 26, 30, 50, 78]})
+        df['age_group'] = pd.qcut(df['age'], 3, precision = 0, labels=labels) # split into 3 groups
+        df['age_group'].value_counts()
+
+
+
+
+
+
 		# Combine the output of an aggregation with the original df
 			d = {"orderid":[1, 1, 1, 2, 2, 3, 4, 5], 
 				 "item":[10, 120, 130, 200, 300, 550, 12.3, 200],

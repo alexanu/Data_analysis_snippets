@@ -67,6 +67,7 @@
     num_dict = {'e':2.718,'pi':3.14159}
     print("%(pi).2f - %(pi).4f - %(e).1f" % num_dict)
 
+    print(f'Initial total buying power = {total_buying_power}')
 
     for idx, symbol in enumerate(symbols):
         for x,y in zip(list(range(0,600)),list(range(1,601))):

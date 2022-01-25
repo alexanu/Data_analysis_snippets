@@ -17,6 +17,10 @@
     str.*find*? # looking for a string method that contains the word find somewhere
 
 
+print('\U0001F600')
+print('\N{deciduous tree}')
+
+
 # Importing / create packages 
 
     help('modules') # check which modules are installed
@@ -273,6 +277,15 @@
     for i, some_dict[i] in enumerate(some_string):
         pass
     some_dict
+
+
+
+
+    dictionary1 = {"name": "Joy", "age": 25}
+    dictionary2 = {"name": "Joy", "city": "New York"}
+    merged_dict = {**dictionary1, **dictionary2}
+    print("Merged dictionary:", merged_dict)
+
 
 
     prices = {

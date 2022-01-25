@@ -92,22 +92,67 @@
     hist_data['year'] = hist_data[0].apply(lambda x: x[-8:-4])
 
 
-# Read minute data from different tickres in one dataframe
-    import os, glob
-    import pandas as pd
 
-    stonks_directory = 'C:\\Users\\oanuf\\Data\\minute_data\\US\\Stocks_adj\\'
-    combined = pd.concat([pd.read_csv(f, sep=',', decimal=".", 
-                                        usecols=[0,1], 
-                                        names=("Day", "Time"),
-                                        nrows=1,
-                                        skiprows=1,
-                                        # skiprows=range(2,count-1), 
-                                        header=None).
-                            assign(filename = f) 
-                            for f in glob.glob(stonks_directory + '*.txt')])
-    combined['Symbol'] = [x.split('.')[0] for x in os.listdir(stonks_directory) if x.endswith(".txt")] # names of txt files in the directory
-    combined.to_csv(stonks_directory + 'TKRS_START.csv', index=False)
+    import pandas as pd
+    import datetime as dt
+    trading_file = 'C:\\Users\\oanuf\\Google Drive\\Docs\\Finance\\Stocks\\Trading_PnL.xlsx'
+    dateparse = lambda x: dt.strptime(x, '%d.%m.%Y')
+    capital_transf = pd.read_excel(trading_file, sheet_name='Transfers',usecols='B:E',parse_dates=['Date'],date_parser=dateparse)
+    capital_transf = capital_transf[capital_transf['Type']=='Investment']
+    capital_transf = capital_transf.reset_index(drop=True)
+
+    capital_transf.Amount.sum()
+    capital_transf.Date[0].date()
+
+
+    fmp_key="d0e821d6fc75c551faef9d5c495136cc"
+    import requests
+
+    BASE_URL_v4="https://financialmodelingprep.com/api/v4/historical-price"
+    time_delta: int = 1 # 1 minute
+    symbol='SPY'
+    data = []
+    for x,y in zip(list(range(31,60)),list(range(32,62))):
+        start=(dt.datetime.now() - dt.timedelta(days=7*y)).strftime("%Y-%m-%d")
+        end=(dt.datetime.now() - dt.timedelta(days=7*x)).strftime("%Y-%m-%d")
+        url = f"{BASE_URL_v4}/{symbol}/{time_delta}/minute/{start}/{end}?apikey={fmp_key}"
+        try:
+            response = requests.get(url)
+            data.append(response.json()['results'])
+            print('Done with %s for %s.' % (symbol, start))
+        except:
+            #break
+            print('No data for %s for %s.' % (symbol, start))
+            pass
+    flat_data = [item for sublist in data for item in sublist] # flatten the list
+    return_var = pd.json_normalize(flat_data)
+    return_var = return_var.drop_duplicates()
+    return_var['datetime'] = pd.to_datetime(return_var['formated'])
+    return_var.set_index('datetime',inplace=True) # "inplace" make the changes in the existing df
+    return_var=return_var.drop(return_var.columns[[5,6]],axis=1) # delete last 2 columns
+    return_var=return_var.rename(columns={'o':'Open','h':'High','l':'Low','c':'Close','v':'Volume'})
+    return_var = return_var[['Open','High','Low','Close','Volume']] # Change order of columns
+    return_var = return_var.sort_index()
+    return_var.head()
+    SPYmin = return_var.copy()
+    return_var.index = return_var.index.tz_localize('US/Eastern') # convert to Eastern Time
+
+    # Capital transfers happen on working day, so usually the date will be found
+    capital_transf['SPY_price']=[return_var.loc[capital_transf.Date[x]+ dt.timedelta(hours=11)].Close for x in range(len(capital_transf))]    
+    
+    return_var.to_csv(symbol+'_minute.csv')
+
+EURUSD_url="https://fmpcloud.io/api/v3/historical-price-full/EURUSD?datatype=csv&serietype=line&apikey=d0e821d6fc75c551faef9d5c495136cc"
+EURUSD_daily = pd.read_csv(EURUSD_url,index_col=0)
+capital_transf['SPY_price']=[EURUSD_daily.loc[capital_transf.Date[x]].close for x in range(len(capital_transf))]    
+capital_transf['EURUSD']=[EURUSD_daily.loc[capital_transf.Date[x].strftime("%Y-%m-%d")].close for x in range(len(capital_transf))]
+capital_transf['Bought_SPY']=-capital_transf.Amount*capital_transf.EURUSD/capital_transf.SPY_price
+capital_transf.Bought_SPY.sum()*return_var.iloc[-1].Close/EURUSD_daily.iloc[-1].close
+
+
+now = dt.date.today()
+for i in range(1,61,10):
+    print(now - i* pd.offsets.BDay()+ dt.timedelta(hours=11))
 
 
 # Read 1st and last row of ETF minute data + dates reading ----------------------
@@ -163,6 +208,7 @@
 
     SPDRs = pd.concat((pd.read_excel(url+ticker+".xlsx", skiprows=5).assign(Ticker=ticker) for ticker in SPDR_ETF if requests.head(url+ticker+".xlsx").status_code == 200), ignore_index=True)
 
+
 # ISO ESG --------------------------------------------------------------------------
 
     import pandas as pd
@@ -202,9 +248,6 @@
                 print("no data for ",country," with grade ", grad)
                 pass
     Database_climate.to_csv("Database_climate.csv")
-
-
-
 
 
 # Get info from different places in line
@@ -260,7 +303,7 @@
         print(line)
 
 
-# Merge all csv files of the same struc in the same folder
+# Merge all csv files of the same struc in the same folder (1)
     import glob
     import pandas as pd
     from time import strftime
@@ -283,6 +326,24 @@
         else:
             return combined
         print('done')
+
+
+# Merge all csv files of the same struc in the same folder (2)
+    import os, glob
+    import pandas as pd
+
+    stonks_directory = 'C:\\Users\\oanuf\\Data\\minute_data\\US\\Stocks_adj\\'
+    combined = pd.concat([pd.read_csv(f, sep=',', decimal=".", 
+                                        usecols=[0,1], 
+                                        names=("Day", "Time"),
+                                        nrows=1,
+                                        skiprows=1,
+                                        # skiprows=range(2,count-1), 
+                                        header=None).
+                            assign(filename = f) 
+                            for f in glob.glob(stonks_directory + '*.txt')])
+    combined['Symbol'] = [x.split('.')[0] for x in os.listdir(stonks_directory) if x.endswith(".txt")] # names of txt files in the directory
+    combined.to_csv(stonks_directory + 'TKRS_START.csv', index=False)
 
 
 # read all csvs, merge and reduce the size of big file from 30GB to 10GB   
@@ -321,10 +382,10 @@
     def _open_ticker_price_csv(self, ticker):
         ticker_path = os.path.join(self.csv_dir, "%s.csv" % ticker)
         self.tickers_data[ticker] = pd.io.parsers.read_csv(
-            ticker_path, header=0, parse_dates=True,
-            dayfirst=True, index_col=1,
-            names=("Ticker", "Time", "Bid", "Ask")
-        )
+                                                ticker_path, header=0, parse_dates=True,
+                                                dayfirst=True, index_col=1,
+                                                names=("Ticker", "Time", "Bid", "Ask")
+                                                )
 
 
 # download the zip file with many txts and move the data to 1 csv
@@ -430,6 +491,10 @@
                         print e
 
 
+# writing multiple CSV files into one ZIP archive
+    df.to_csv('collection_name.zip', compression = {'method': 'zip', 'archive_name': 'table_name.csv'}, mode='a')
+
+
 # divide text (csv or ...) to small files with defined number of lines
     def splitter(name, parts = 100000):
         # make dir for files
@@ -501,7 +566,6 @@
             return collections.deque(f, n)
 
 
-
 # Timestamped filename
 
     # 'sample.txt' --> 'sample_2016_01_23_18_07_23.txt'
@@ -551,7 +615,6 @@
     # Other than this we are just concatinating the different dataframes
     df = pd.concat((pd.read_csv(file).assign(filename = file) for file in lf), ignore_index = True)
     df.sample(10)
-
 
 
 # Scrape tables from many pages and put every result to separate csv 

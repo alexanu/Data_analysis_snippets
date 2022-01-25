@@ -421,6 +421,16 @@ import datetime
 		AAPL.count()
 		SPY_TICK.describe()
 
+
+        data.hist(figsize=(14,14), xrot=45)
+        plt.show()
+
+
+        for column in data.select_dtypes(include='object'):
+            if data[column].nunique() < 10:
+                sns.countplot(y=column, data=data)
+                plt.show()
+
 		df.groupby("continent")["beer_servings"].describe()
 
 
@@ -436,6 +446,9 @@ import datetime
 
         read_file[read_file.isna().any(axis=1)].count()
         read_file[read_file.isnull().any(axis=1)].count()
+
+        # find duplicates 
+        Index_const[Index_const.duplicated(subset=['symbol'],keep=False)]
 
 
 		# select columns:
@@ -482,6 +495,8 @@ import datetime
 
 		# Rename columns
 			NQ100.rename(columns={'lastsale':'Last'})
+            constituents.rename(columns={'Constituent RIC': 'ric', 'Constituent Name': 'name'}, inplace=True)
+
 
 			# add a prefix or suffix to all columns
 			df.add_prefix("1_")
@@ -552,6 +567,10 @@ import datetime
 				UC=USDCHF.dropna()
 				df1.dropna(axis = "rows") # drop any row that has missing values
 
+                # delete rows where the date belong to rare dates
+                unique_dates= all_hist_capital['date'].value_counts()
+                all_hist_capital = all_hist_capital[~all_hist_capital['date'].isin(unique_dates[unique_dates < 5].index)] 
+
 
 		# Appending & Changing rows
 			UC_new= UC.nlargest(20,'Volume')
@@ -563,6 +582,28 @@ import datetime
 			ho.extend([str(i) + 'W' for i in range(1,4)])  # weekly tenors
 			ho.extend([str(i) + 'M' for i in range(1,12)])  # monthly tenors
 			ho.extend([str(i) + 'Y' for i in range(1,51)])  # yearly tenors
+
+            # Anonymize data (change real names to fake)
+                def anonymize(portfolio, provider):
+                    portfolio_companies = portfolio['company_name'].unique()
+                    for index, company_name in enumerate(portfolio_companies):
+                        portfolio.loc[portfolio['company_name'] == company_name, 'company_id'] = 'C' + str(index + 1)
+                        portfolio.loc[portfolio['company_name'] == company_name, 'company_isin'] = 'C' + str(index + 1)
+                        provider.data['fundamental_data'].loc[provider.data['fundamental_data']['company_name'] == company_name, 'company_id'] = 'C' + str(index + 1)
+                        provider.data['fundamental_data'].loc[provider.data['fundamental_data']['company_name'] == company_name, 'company_isic'] = 'C' + str(index + 1)
+                        provider.data['target_data'].loc[provider.data['target_data']['company_name'] == company_name, 'company_id'] = 'C' + str(index + 1)
+                        portfolio.loc[portfolio['company_name'] == company_name, 'company_name'] = 'Company' + str(
+                            index + 1)
+                        provider.data['fundamental_data'].loc[provider.data['fundamental_data']['company_name'] == company_name, 'company_name'] = 'Company' + str(
+                            index + 1)
+                        provider.data['target_data'].loc[provider.data['target_data']['company_name'] == company_name, 'company_name'] = 'Company' + str(
+                            index + 1)
+                    for index, company_name in enumerate(provider.data['fundamental_data']['company_name'].unique()):
+                        if company_name not in portfolio['company_name'].unique():
+                            provider.data['fundamental_data'].loc[provider.data['fundamental_data']['company_name'] == company_name, 'company_id'] = '_' + str(index + 1)
+                            provider.data['fundamental_data'].loc[provider.data['fundamental_data']['company_name'] == company_name, 'company_name'] = 'Company_' + str(
+                                index + 1)
+                    return portfolio, provider
 
 
         # Change format of columns
@@ -616,6 +657,9 @@ import datetime
                     return np.concatenate(([False],a[1:] == a[:-1]))
                 df['match'] = comp_prev(df.col1.values)
 
+
+            # create new col "rank": rank of market cap among symbols on every date
+            qvdf["rank"] = qvdf.groupby("date")["marketCap"].rank(ascending=False)
 
 			NQ100['Random']=Series(np.random.normal(size=len(NQ100)),index=NQ100.index)
 			NQ100.insert(1,'Rand',Series(np.random.normal(size=len(NQ100)),index=NQ100.index))
@@ -700,6 +744,14 @@ import datetime
                 df.select_dtypes(include = ["int8", "int16", "int32", "int64", "float"]) # Select by passing the dtypes you need
 
 
+
+        # Doing operations with pipes:
+            df_preped = (diamonds.pipe(drop_duplicates).
+                                  pipe(remove_outliers, ['price', 'carat', 'depth']).
+                                  pipe(encode_categoricals, ['cut', 'color', 'clarity'])
+            )
+
+
 		AAPL[['datetime','Volume']].head()
         market_data_250 = market_data.iloc[:250] # Select the first 250 rows
 
@@ -711,6 +763,11 @@ import datetime
 	
     	SPY_TICK.sample(frac=0.001)
     	pd.concat([UC.sample(n=10), UC.sample(n=10)])
+
+
+        # find duplicates 
+            Index_const[Index_const.duplicated(subset=['symbol'],keep=False)]
+
 
 
 		# importance of index
@@ -727,11 +784,16 @@ import datetime
 
         # Select rows by values
 
+            diamonds.price.idxmax() # position of the max
+
             USDCHF[USDCHF.Volume>200]
             AAPL[AAPL.Close - AAPL.Open>5]
             AAPL[AAPL.Open - AAPL.Close.shift()>15] # shows where the diff btw t-1 close and t > smth
             NQ100[(NQ100.share_volume>10000000) & (NQ100.lastsale<40)]['Name']
     		df[(df["M"] >= 50000) & (df["F"] >= 50000)] # names that atleast have 50,000 records for each gender
+
+            diamonds[diamonds["price"].between(3500, 3700, inclusive="neither")].sample(5)
+
 
             qvdf=qvdf[pd.notnull(qvdf['comboaccrual'])]
 
@@ -749,6 +811,12 @@ import datetime
             cutoff=.95
             s=(qvdf['comboaccrual']<cutoff)&(qvdf['p_pman']<cutoff)&(qvdf['p_pfd']<cutoff)
             qvdf=qvdf[s]
+
+            # delete rows where the date belong to rare dates
+                unique_dates= all_hist_capital['date'].value_counts()
+                all_hist_capital = all_hist_capital[~all_hist_capital['date'].isin(unique_dates[unique_dates < 5].index)] 
+
+
 
 
             # Select values which are above/below given limits
@@ -769,6 +837,9 @@ import datetime
             qvdf=qvdf[pd.to_datetime(qvdf['release_date']).dt.date<last_valid_day.date()]
             qvdf=qvdf[pd.to_datetime(qvdf['end_date']).dt.date>=last_valid_day.date()-relativedelta(months=6)]
 
+            data.at_time("15:00")
+            data.between_time("09:45", "12:00")
+
 
         # Extract by string
                 # remove rows wher name of a company has on certain letters
@@ -781,6 +852,8 @@ import datetime
 
                 s=qvdf['industry_category'].isin([None,"Banking","Financial Services","Real Estate","Utilities"])
                 qvdf=qvdf[~s]
+
+                df['symbol'].isin(["F","AAPL","NVDA","MBI","TSLA"])
 
                 mask = SPY_TICK['SALE_CONDITION'].values == 'F'
                 SPY_TICK[mask]
@@ -845,6 +918,8 @@ import datetime
 		AAPL_grouped = AAPL.groupby("Volume")
         result.groupby(["GapSize_Rank","End_Month","Strategy"]).agg({'TradeReturn': 'mean'})
 
+        # create new col "rank": rank of market cap among symbols on every date
+        qvdf["rank"] = qvdf.groupby("date")["marketCap"].rank(ascending=False)
 
 		df[df["year"] >= 2008].pivot_table(index="name", 
 											columns="year", 
@@ -966,6 +1041,48 @@ import datetime
 
 	original_prices = [1.25, -9.45, 10.22, 3.78, -5.92, 1.16]
 	prices = [i if i > 0 else 0 for i in original_prices]
+
+
+    # From Mayer book:
+        # 1
+            employees = {'Alice' : 100000,'Bob' : 99817,'Carol' : 122908,'Frank' : 88123,'Eve' : 93121}
+
+            top_earners = []
+            for key, val in employees.items():
+                if val >= 100000:
+                    top_earners.append((key,val))
+            print(top_earners)
+
+            # or:
+            top_earners = [(k, v) for k, v in employees.items() if v >= 100000]
+
+        # 2
+            text = '''
+            Call me Ishmael. Some years ago - never mind how long precisely - having
+            little or no money in my purse, and nothing particular to interest me
+            on shore, I thought I would sail about a little and see the watery part
+            of the world. It is a way I have of driving off the spleen, and regulating
+            the circulation. - Moby Dick'''
+
+            w = [[x for x in line.split() if len(x)>3] for line in text.split('\n')]
+
+        # 3
+            txt = ['Lambda-Funktionen sind anonyme Funktionen.',
+            'anonyme Funktionen haben keinen Namen.',
+            'Funktionen sind Objekte in Python.']
+
+            mark = map(lambda s: (True, s) if 'anonyme' in s else (False, s), txt)
+            print(list(mark))
+
+        #4
+            price = [[9.9, 9.8, 9.8, 9.4, 9.5, 9.7],
+                    [9.5, 9.4, 9.4, 9.3, 9.2, 9.1],
+                    [8.4, 7.9, 7.9, 8.1, 8.0, 8.0],
+                    [7.1, 5.9, 4.8, 4.8, 4.7, 3.9]]
+
+            sample = [line[::2] for line in price]
+
+
 
 
 # Bid prices offered by the two buyers, pA and pB. Bid sizes, sA and sB. 

@@ -754,15 +754,21 @@ import datetime
 
 		AAPL[['datetime','Volume']].head()
         market_data_250 = market_data.iloc[:250] # Select the first 250 rows
-
-
-		AAPL.nlargest(20,'Volume')
-		SPY_TICK.nlargest(20,'SIZE')
-		NQ100.nsmallest(4,'share_volume')['share_volume']
-		SPY_TICK.SIZE.nlargest(10)
-	
     	SPY_TICK.sample(frac=0.001)
     	pd.concat([UC.sample(n=10), UC.sample(n=10)])
+
+
+		# largest
+			AAPL.nlargest(20,'Volume')
+			SPY_TICK.nlargest(20,'SIZE')
+			NQ100.nsmallest(4,'share_volume')['share_volume']
+			SPY_TICK.SIZE.nlargest(10)
+
+			# Largest symbols by capitalization for every sector
+			df.groupby('TRBC Economic Sector Name')['Company Market Cap'].nlargest(3)
+			df.groupby('TRBC Economic Sector Name',as_index=False).apply(lambda x: x.nlargest(3, 'Company Market Cap'))
+
+	
 
 
         # find duplicates 

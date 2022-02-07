@@ -165,7 +165,7 @@
                     string = string[:-1]
             return string
         except:
-    return string
+            return string
 		
 
     # getting rid of extra white spaces
@@ -233,6 +233,12 @@
 # filter out companies which name ends on LLC
 	qvdf=qvdf[~qvdf['name'].str[-2:].str.contains('LP')]
 	qvdf=qvdf[~qvdf['name'].str[-3:].str.contains('LLC')]
+
+
+# remove part of string from several columns
+    columns_string =['EarnScore_Date','Expect_Rep_Date','MomScore_Date','AvgScore_Date'] # select columns with dates (but actually the dates are strings)
+    SP500_indicators[columns_string] = SP500_indicators[columns_string].replace('T00:00:00Z', '', regex=True) # removing not needed part from strings
+
 
 
 # Create rows for values separated by commas in a cell

@@ -497,6 +497,9 @@ import datetime
 			NQ100.rename(columns={'lastsale':'Last'})
             constituents.rename(columns={'Constituent RIC': 'ric', 'Constituent Name': 'name'}, inplace=True)
 
+            SP500_indicators.columns.values[11] = "3MAvgVolume"
+            SP500_indicators.columns.values[-11] = "EarnScore_Date"
+
 
 			# add a prefix or suffix to all columns
 			df.add_prefix("1_")
@@ -536,7 +539,10 @@ import datetime
 		# Deleting
 
 			# delete columns
-				UC.drop(UC.columns[[3,4]],axis=1)
+				
+                df.drop('column_name', axis=1, inplace=True)
+
+                UC.drop(UC.columns[[3,4]],axis=1)
 				interesting_collums = ['loyalty', 'satisfaction','educ']      
 				reduced = data[interesting_collums]
 
@@ -583,6 +589,7 @@ import datetime
 			ho.extend([str(i) + 'M' for i in range(1,12)])  # monthly tenors
 			ho.extend([str(i) + 'Y' for i in range(1,51)])  # yearly tenors
 
+
             # Anonymize data (change real names to fake)
                 def anonymize(portfolio, provider):
                     portfolio_companies = portfolio['company_name'].unique()
@@ -606,12 +613,15 @@ import datetime
                     return portfolio, provider
 
 
-        # Change format of columns
-            result['EntryTime'] = pd.to_datetime(result['EntryTime'], format= '%Y/%m/%d %H:%M')
+            # Change format of columns
+                result['EntryTime'] = pd.to_datetime(result['EntryTime'], format= '%Y/%m/%d %H:%M')
 
-            impactful_data['timestamp_af'] = impactful_data['timestamp'].apply(lambda x: self.utc_to_local(x))
+                impactful_data['timestamp_af'] = impactful_data['timestamp'].apply(lambda x: self.utc_to_local(x))
 
+                cols_to_round = SP500_indicators.select_dtypes(include=['float64']).columns.to_list() # selecting all columns of type float
+                SP500_indicators[cols_to_round] = SP500_indicators[cols_to_round].astype('Int64') # tranform selected columns to integer (I don't really care about decimals)
 
+    			data['educ'] = pd.to_numeric(data['educ'],errors='coerce') # errors='coerce' means that we force the conversation. noncovertable are set to NaN
 
 
 			# Adding anomalies to df
@@ -621,6 +631,7 @@ import datetime
                     gasoline_price_df.loc[index,'Gasoline_Price']=anomaly_value
                     gasoline_price_df.loc[index,'Artificially_Generated_Anomaly']=1
 
+
 			# delete $ from string
 				df.state_bottle_retail.str.replace('$','') # 4.5*X ms: replaces the ‘$’ with a blank space for each item in the column
 				df.state_bottle_retail.apply(lambda x: x.replace('$','')) # 4*X ms: pandas ‘apply’ method, which is optimized to perform operations over a pandas column
@@ -628,7 +639,11 @@ import datetime
 				df.state_bottle_retail = [x.strip('$') for x in df.state_bottle_retail] # 2*X ms: list comprehension
 				df.state_bottle_retail = [x[1:] for x in df.state_bottle_retail] # X ms: built in [] slicing, [1:] slices each string from 2nd value till end
 
-			data['educ'] = pd.to_numeric(data['educ'],errors='coerce') # errors='coerce' means that we force the conversation. noncovertable are set to NaN
+
+            # remove part of string from several columns
+                columns_string =['EarnScore_Date','Expect_Rep_Date','MomScore_Date','AvgScore_Date'] # select columns with dates (but actually the dates are strings)
+                SP500_indicators[columns_string] = SP500_indicators[columns_string].replace('T00:00:00Z', '', regex=True) # removing not needed part from strings
+
 
 			# Remove dubpicates from rows:
 			   # 	0  1    2    3
@@ -648,6 +663,9 @@ import datetime
 			apple["20d"] = np.round(apple["Adj. Close"].rolling(window = 20, center = False).mean(), 2)
 
             qvdf['comboaccrual']=qvdf[["p_snoa","p_sta"]].mean(axis=1)
+
+            # create col in specific place
+                SP500_indicators.insert(loc=11, column='Trades_rank', value=SP500_indicators['Trades'].rank(ascending=False)) # rank and create new column in specific location (after 'Trades')
 
             # Comparing previous row values
                 df['match'] = df.col1 == df.col1.shift()
@@ -744,7 +762,6 @@ import datetime
                 df.select_dtypes(include = ["int8", "int16", "int32", "int64", "float"]) # Select by passing the dtypes you need
 
 
-
         # Doing operations with pipes:
             df_preped = (diamonds.pipe(drop_duplicates).
                                   pipe(remove_outliers, ['price', 'carat', 'depth']).
@@ -756,6 +773,9 @@ import datetime
         market_data_250 = market_data.iloc[:250] # Select the first 250 rows
     	SPY_TICK.sample(frac=0.001)
     	pd.concat([UC.sample(n=10), UC.sample(n=10)])
+
+        # Show rows with N/As
+            events_df[events_df.isna().any(axis=1)]
 
 
 		# largest
@@ -769,11 +789,10 @@ import datetime
 			df.groupby('TRBC Economic Sector Name',as_index=False).apply(lambda x: x.nlargest(3, 'Company Market Cap'))
 
 	
-
-
         # find duplicates 
             Index_const[Index_const.duplicated(subset=['symbol'],keep=False)]
 
+            events_df[events_df.duplicated()]
 
 
 		# importance of index

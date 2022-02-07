@@ -2,34 +2,29 @@
 #----------------------------------------------------------------------------------------------------
 # Prep
 
-import pandas as pd
-import numpy as np
+    import pandas as pd
+    import numpy as np
 
-import datetime as dt
-import time
-import calendar
-
-
-
-dateparse = lambda x: pd.datetime.strptime(x, '%Y-%m-%d %H:%M:%S')
-AAPL = pd.read_csv("D:\\Data\\minute_data\\US\\Stocks_adj\\AAPL.txt", sep=',', decimal=".", 
-                    parse_dates=['datetime'], date_parser=dateparse)
-AAPL.set_index('datetime',inplace=True) # "inplace" make the changes in the existing df
-
-AAPL.head()
-AAPL.info()
-
-len(AAPL)
-
+    import datetime as dt
+    import time
+    import calendar
 
 #---------------------------------------------------------------------------------------------------
-
-
 
 
 df = pd.DataFrame({'year': [2015, 2016], 'month': [2, 3], 'day': [4, 5], 'hour': [10,11]})
 pd.to_datetime(df[['month','day','year']])
 pd.to_datetime(df)
+
+
+
+# Import files with dates
+
+    import datetime as dt
+    dateparse = lambda x: dt.datetime.strptime(x, '%Y-%m-%d %H:%M:%S')
+    hist_earn_calls=pd.read_excel('D:\\Data\\Other_data\\all_5Y_earn_calls.xlsx',
+                                    usecols=['RIC','Ticker', 'ISIN', 'Event_Type', 'Event_date_GMT'],
+                                    parse_dates=['Event_date_GMT'], date_parser=dateparse)
 
 
 
@@ -59,7 +54,7 @@ pd.to_datetime(df)
         pd.to_datetime(pd.Series(["11 Jul 2018","13.04.2015","30/12/2011"]),dayfirst=True)
 
         df = pd.DataFrame({'date': ['3/10/2000', 'a/11/2000', '3/12/2000'], 'value': [2, 3, 4]})
-        df['date'] = pd.to_datetime(df['date'], errors='coerce')
+        df['date'] = pd.to_datetime(df['date'], errors='coerce') # errors='coerce' means that we force the conversation. noncovertable are set to NaN
         df.set_index('date',inplace=True) # "inplace" make the changes in the existing df
 
         # providing a format could increase speed of conversion significantly
@@ -131,6 +126,7 @@ pd.to_datetime(df)
     now_time = dt.datetime.now(tz=MARKET_TIMEZONE).strftime("%H:%M")
 
     df.index = df.index.tz_localize('UTC').tz_convert('US/Eastern') # convert to Eastern Time
+
 
     def utc_to_local(utc_dt):
         utc_dt = dt.strptime(utc_dt, "%Y-%m-%d %H:%M:%S")
@@ -328,7 +324,6 @@ pd.to_datetime(df)
     btc_data.index = btc_data.index.map(lambda timestamp : timestamp.date) # keep only the date part of our timestamp index
 
 
-
 # Resample / group
     AAPL.index # shows freq=None
     AAPL.asfreq('D') # H, W; important that index are datetime
@@ -366,7 +361,6 @@ pd.to_datetime(df)
         logic = {'open':'first', 'high':'max', 'low':'min', 'close':'last', 'volume':'sum'}
         data_5m[ticker] = data_dump[ticker].resample('5Min').apply(logic)
         data_5m[ticker].dropna(inplace=True)
-
 
 
 # Filter df by date -----------------------------------------------------------------------------------------
@@ -449,7 +443,6 @@ pd.to_datetime(df)
     mcal.merge_schedules(schedules=[nyse_extract, lse_extract], how='inner') # dates where both the NYSE and LSE are open
 
     alpaca.get_calendar("2021-02-08", "2021-02-18") # start=None, end=None
-
 
 
 # Market open?

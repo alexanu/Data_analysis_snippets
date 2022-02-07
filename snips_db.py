@@ -82,6 +82,15 @@
     Tickers.append([x.split('.')[0] for x in os.listdir(ETF_directory) if x.endswith(".txt")])
 
 
+# Simple excel import
+    import datetime as dt
+    dateparse = lambda x: dt.datetime.strptime(x, '%Y-%m-%d %H:%M:%S')
+    hist_earn_calls=pd.read_excel('D:\\Data\\Other_data\\all_5Y_earn_calls.xlsx',
+                                    usecols=['RIC','Ticker', 'ISIN', 'Event_Type', 'Event_date_GMT'],
+                                    parse_dates=['Event_date_GMT'], date_parser=dateparse)
+
+
+
 # Create list of avialable FX pairs
     import os, glob
     import pandas as pd

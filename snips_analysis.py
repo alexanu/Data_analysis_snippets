@@ -133,6 +133,14 @@ import datetime
 		df_new = pd.read_csv("name_age.csv", converters = {"gender" : completeGender})
 
 
+        # read parqueat is much faster than csv
+            df = pd.read_csv("large.csv") # 13 sec for 700mb file
+            df = pd.read_csv("large.csv", engine="pyarrow") # available in from pd 1.4; 6 sec
+            df = pd.read_csv("large.csv")
+            df.to_parquet("large.parquet", compression=None)
+            df = pd.read_parquet("large.parquet", engine="fastparquet") # 2 sec
+
+
 
 		# from quandl
 			import quandl
@@ -420,10 +428,17 @@ import datetime
 
 		AAPL.count()
 		SPY_TICK.describe()
+		SPY_TICK.info()
 
+		SPY_TICK.describe()
+        
+        df.apply(lambda x: x.nunique()) # number of distinct values in each column
+
+        all_hist_capital['symbol'].value_counts() # counts how many times each symbol appears
 
         data.hist(figsize=(14,14), xrot=45)
         plt.show()
+        df['Age'].hist(figsize = (15,5))
 
 
         for column in data.select_dtypes(include='object'):
@@ -893,6 +908,9 @@ import datetime
                                     'Col3': np.random.random(5)})
                     np.unique(df[['Col1', 'Col2']].values) # array(['Bill', 'Bob', 'Joe', 'Mary', 'Steve'], dtype=object)
                     set(np.concatenate(df.values))
+
+                # select rows, where symbol appears <10 times
+                    all_hist_capital[all_hist_capital['symbol'].isin(unique_symb[unique_symb < 10].index)] 
 
 
                 # separate df for every category

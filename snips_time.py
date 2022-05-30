@@ -50,12 +50,23 @@ pd.to_datetime(df)
         str(dt.datetime.fromtimestamp(time.time()).strftime('[%H:%M:%S] '))
 
     # string to date
+
+        from dateutil.parser import parse
+        t = "2022-04-14T13:55:00Z"
+        tick_datetime_object = parse(t)
+        tick_datetime_object.strftime('%Y-%m-%d %H:%M')
+
         pd.to_datetime(pd.Series(["Jul 31, 2017","2010-10-01","2016/10/10","2014.06.10"]))
         pd.to_datetime(pd.Series(["11 Jul 2018","13.04.2015","30/12/2011"]),dayfirst=True)
 
         df = pd.DataFrame({'date': ['3/10/2000', 'a/11/2000', '3/12/2000'], 'value': [2, 3, 4]})
         df['date'] = pd.to_datetime(df['date'], errors='coerce') # errors='coerce' means that we force the conversation. noncovertable are set to NaN
         df.set_index('date',inplace=True) # "inplace" make the changes in the existing df
+
+
+        trading_days_df['date'] = pd.to_datetime(trading_days_df['date'], format='%Y-%m-%d')
+        trading_days_df = trading_days_df.set_index('date')
+
 
         # providing a format could increase speed of conversion significantly
         pd.to_datetime(pd.Series(["12-11-2010 01:56","11-01-2012 22:10","28-02-2013 14:59"]), format='%d-%m-%Y %H:%M')
@@ -195,6 +206,10 @@ pd.to_datetime(df)
         rng+pd.DateOffset(months=2,hours=3)
             # be careful: bdate_range or BDay() are just calendar days with weekends stripped out (ie. it doesn't take holidays into account).
 
+    now = dt.date.today()
+    for i in range(1,61,10):
+        print(now - i* pd.offsets.BDay()+ dt.timedelta(hours=11))
+
 
     def month_weekdays(year_int, month_int):
         """
@@ -315,6 +330,10 @@ pd.to_datetime(df)
     # https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#time-date-components
 
 
+    trading_days_df['DOM'] = np.where(trading_days_df.date.dt.to_period('M') != trading_days_df.date.shift().dt.to_period('M'), 'FDM', 
+                             np.where(trading_days_df.date.dt.to_period('M') != trading_days_df.date.shift(-1).dt.to_period('M'), 'EOM', 'No'))   # FDM - 1st day of month, EOM - end of Month
+
+
     weekends_sales = daily_sales[daily_sales.index.dayofweek.isin([5, 6])] # filter weekends
 
 	friday = pd.Timestamp("2018-01-05")
@@ -395,6 +414,17 @@ pd.to_datetime(df)
 
 # trading calendars examples
 
+    trading_days_df = pd.DataFrame([day._raw for day in alpaca.get_calendar("2014-12-01", "2022-05-23")])
+    trading_days_df['date'] = pd.to_datetime(trading_days_df['date'], format='%Y-%m-%d')
+    trading_days_df['DOM'] = np.where(trading_days_df.date.dt.to_period('M') != trading_days_df.date.shift().dt.to_period('M'), 'FDM', 
+                             np.where(trading_days_df.date.dt.to_period('M') != trading_days_df.date.shift(-1).dt.to_period('M'), 'EOM', 'No'))   # FDM - 1st day of month, EOM - end of Month
+    trading_days_df = trading_days_df.set_index('date')
+    trading_days_df['Weekday_Name'] = trading_days_df.index.dayofweek # 0 = Monday
+    trading_days_df[19:24]
+    trading_days_df[(trading_days_df.session_close=='1600') | (trading_days_df.close=='1300')] # there are some closes at 13:00
+
+
+
     # https://github.com/rsheftel/pandas_market_calendars
     # Chinese and US trading calendars with date math utilities 
     # based on pandas_market_calendar
@@ -405,6 +435,10 @@ pd.to_datetime(df)
     nyse_extract = nyse.schedule(start_date='2020-12-01', end_date='2021-11-01')
     mcal.date_range(nyse_extract, frequency='1M')
     nyse.valid_days(start_date='2020-12-01', end_date='2021-11-01')
+
+
+
+
 
 
 

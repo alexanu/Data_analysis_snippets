@@ -233,6 +233,25 @@ print('\N{deciduous tree}')
     integers_found_so_far # Booleans are a subclass of int
 
 
+    # split long list into many small
+
+        def chunkIt(seq, num): 
+            avg = len(seq) / float(num)
+            out = []
+            last = 0.0
+
+            while last < len(seq):
+                out.append(seq[int(last):int(last + avg)])
+                last += avg
+
+            return out
+
+        All_constitu_split = chunkIt(list(All_constitu), 50) # Split all tickers into 50 groups
+        [bulk_down(x) for x in All_constitu_split] # for each small group do bulk_down
+
+
+
+
 
     # Adding/replace
         x[3:5]=["one","two","three"]

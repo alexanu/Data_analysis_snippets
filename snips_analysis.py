@@ -592,6 +592,9 @@ import datetime
                 unique_dates= all_hist_capital['date'].value_counts()
                 all_hist_capital = all_hist_capital[~all_hist_capital['date'].isin(unique_dates[unique_dates < 5].index)] 
 
+                # delete outliers
+                no_outlier_prices = prices_only[(np.abs(stats.zscore(prices_only)) < 6).all(axis=1)]
+
 
 		# Appending & Changing rows
 			UC_new= UC.nlargest(20,'Volume')
@@ -679,6 +682,9 @@ import datetime
 
             qvdf['comboaccrual']=qvdf[["p_snoa","p_sta"]].mean(axis=1)
 
+            df_ranked['total_rank']= df_ranked.iloc[:, -4:-1].mean(axis=1)
+
+
             # create col in specific place
                 SP500_indicators.insert(loc=11, column='Trades_rank', value=SP500_indicators['Trades'].rank(ascending=False)) # rank and create new column in specific location (after 'Trades')
 
@@ -689,6 +695,12 @@ import datetime
                 def comp_prev(a):
                     return np.concatenate(([False],a[1:] == a[:-1]))
                 df['match'] = comp_prev(df.col1.values)
+
+
+            # new column with value depending on previous row
+            trading_days_df['DOM'] = np.where(trading_days_df.date.dt.to_period('M') != trading_days_df.date.shift().dt.to_period('M'), 'FDM', 
+                                    np.where(trading_days_df.date.dt.to_period('M') != trading_days_df.date.shift(-1).dt.to_period('M'), 'EOM', 'No'))   # FDM - 1st day of month, EOM - end of Month
+
 
 
             # create new col "rank": rank of market cap among symbols on every date
@@ -721,6 +733,20 @@ import datetime
 			# split column into 2 columns
     			df[[one,two]] = df[orig].str.split(separator,expand=True)
 
+
+        # restructure
+            df_wide = pd.DataFrame({"Country": ["France", "US", "UK"],
+                                    "22/01/2020": [1,2,3],
+                                    "23/01/2020": [4,5,6],
+                                    "24/01/2020": [7,8,9],
+                                    "25/01/2020": [10,11,12],
+                                    "26/01/2020": [13,14,15],
+                                    }
+                                    )
+            df_wide
+            df_wide.melt(id_vars='Country')
+            df_wide.melt(id_vars='Country',var_name='Date',value_name='Cases')
+            
 
 # Extracting sub-set from DF --------------------------------------------------------------
 
@@ -869,16 +895,57 @@ import datetime
 
 
         # Extract by date
-            mask = (stock_data['Date'] > start_date) & (stock_data['Date'] <= end_date) # filter our column based on a date range   
-            stock_data = stock_data.loc[mask] # rebuild our dataframe
 
-            impactful_data = impactful_data.loc[impactful_data['date'] == date].copy()
+                # if data col is index:
+                    df.loc['2014-01-01':'2014-02-01']
+                    df.loc[df.index.month == 3]
+                # if not index:
+                    df[(df['date'] > '2013-01-01') & (df['date'] < '2013-02-01')]
+                    df[df['date'].dt.dayofweek == 6]
+                    df[df['date'].dt.month == 12]
 
-            qvdf=qvdf[pd.to_datetime(qvdf['release_date']).dt.date<last_valid_day.date()]
-            qvdf=qvdf[pd.to_datetime(qvdf['end_date']).dt.date>=last_valid_day.date()-relativedelta(months=6)]
+                df.query('20130101 < date < 20130201')
+                
+                df.loc[datetime.date(year=2014,month=1,day=1):datetime.date(year=2014,month=2,day=1)]
 
-            data.at_time("15:00")
-            data.between_time("09:45", "12:00")
+
+                trading_days_df['DOM'] = np.where(trading_days_df.date.dt.to_period('M') != trading_days_df.date.shift().dt.to_period('M'), 'FDM', 
+                                         np.where(trading_days_df.date.dt.to_period('M') != trading_days_df.date.shift(-1).dt.to_period('M'), 'EOM', 'No'))   # FDM - 1st day of month, EOM - end of Month
+
+
+                qvdf=qvdf[pd.to_datetime(qvdf['release_date']).dt.date<last_valid_day.date()]
+                qvdf=qvdf[pd.to_datetime(qvdf['end_date']).dt.date>=last_valid_day.date()-relativedelta(months=6)]
+
+                mask = (stock_data['Date'] > start_date) & (stock_data['Date'] <= end_date) # filter our column based on a date range   
+                stock_data = stock_data.loc[mask] # rebuild our dataframe
+
+                all_hist_capital.loc[all_hist_capital['date'] > "2020"]
+                df[df['date'].dt.to_period('Y') == '2019']
+
+                df_filtered = df[df['date'].dt.strftime('%Y') == '2014']               
+                df_filtered = df[df['date'].dt.strftime('%Y-%m') == '2014-01']
+                df[df['date'].dt.to_period('M') == '2019-12']
+
+
+                weekends_sales = daily_sales[daily_sales.index.dayofweek.isin([5, 6])] # filter weekends
+
+
+                mkt_open = dt.datetime(int(year),int(month),int(d), 9, 30 )
+                mkt_close = dt.datetime(int(year),int(month),int(d), 16, 00 )
+                dat = data[(data.index > mkt_open) & (data.index<mkt_close)]
+                
+                after_60d = pd.to_datetime('today').date() + datetime.timedelta(days=60)
+                df[df['date_col'] < after_60d]
+
+                rng=pd.date_range('2019','2021',freq="BM")
+                ts=pd.Series(np.random.randn(len(rng)),index=rng)
+                ts["2019"]
+                ts["2019-2":"2019-7"]
+                ts.truncate(before="2019-2",after="2019-7") # select less than above
+
+                # Only keep quotes at trading times
+                df001 = df001.set_index('Date_Time')
+                df001 = df001.between_time('9:30','16:00',include_start=True, include_end=True)
 
 
         # Extract by string
@@ -928,7 +995,6 @@ import datetime
                         stock_rows = self.df.loc[self.df['Symbol_Root'] == stock]
 
 
-
 		# identify outliers using 3 sigma approach
 
 			df_ma = df[['simple_rtn']].rolling(window=21).agg(['mean', 'std']) #calculate rolling mean and standard deviation
@@ -941,6 +1007,7 @@ import datetime
 																df_outliers['std'])] 
 			outliers = df_outliers.loc[df_outliers['outlier'] == 1, ['simple_rtn']]
 
+            no_outlier_prices = prices_only[(np.abs(stats.zscore(prices_only)) < 6).all(axis=1)]
 
 		# Filter only the largest categories
 			df = pd.read_csv("../input/imdb-data/IMDB-Movie-Data.csv")
@@ -973,6 +1040,11 @@ import datetime
                                                     columns="Strategy", 
                                                     values="TradeReturn", 
                                                     aggfunc=np.mean).fillna(0)
+
+
+        df['cap_bin']= pd.qcut(df['Company Market Cap'], q = 4, labels = ["small", "medium", "big", "very big"]) # split into bins
+        df.pivot_table(index='TRBC Economic Sector Name', columns='cap_bin', aggfunc='size', fill_value=0)
+
 
 
         labels=['Gen X', 'Boomer', 'Greatest']
@@ -1124,7 +1196,6 @@ import datetime
                     [7.1, 5.9, 4.8, 4.8, 4.7, 3.9]]
 
             sample = [line[::2] for line in price]
-
 
 
 

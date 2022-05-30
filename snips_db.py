@@ -90,8 +90,7 @@
                                     parse_dates=['Event_date_GMT'], date_parser=dateparse)
 
 
-
-# Create list of avialable FX pairs
+# Create list of avialable files
     import os, glob
     import pandas as pd
     directory = 'D:\\Data\\minute_data\\histdata_2000_2019\\'
@@ -101,70 +100,39 @@
     hist_data['year'] = hist_data[0].apply(lambda x: x[-8:-4])
 
 
-
+# Create overview of content of available csv files with quotes and  gesamt database
+    import os
     import pandas as pd
+    import time
     import datetime as dt
-    trading_file = 'C:\\Users\\oanuf\\Google Drive\\Docs\\Finance\\Stocks\\Trading_PnL.xlsx'
-    dateparse = lambda x: dt.strptime(x, '%d.%m.%Y')
-    capital_transf = pd.read_excel(trading_file, sheet_name='Transfers',usecols='B:E',parse_dates=['Date'],date_parser=dateparse)
-    capital_transf = capital_transf[capital_transf['Type']=='Investment']
-    capital_transf = capital_transf.reset_index(drop=True)
 
-    capital_transf.Amount.sum()
-    capital_transf.Date[0].date()
-
-
-    fmp_key="d0e821d6fc75c551faef9d5c495136cc"
-    import requests
-
-    BASE_URL_v4="https://financialmodelingprep.com/api/v4/historical-price"
-    time_delta: int = 1 # 1 minute
-    symbol='SPY'
-    data = []
-    for x,y in zip(list(range(31,60)),list(range(32,62))):
-        start=(dt.datetime.now() - dt.timedelta(days=7*y)).strftime("%Y-%m-%d")
-        end=(dt.datetime.now() - dt.timedelta(days=7*x)).strftime("%Y-%m-%d")
-        url = f"{BASE_URL_v4}/{symbol}/{time_delta}/minute/{start}/{end}?apikey={fmp_key}"
-        try:
-            response = requests.get(url)
-            data.append(response.json()['results'])
-            print('Done with %s for %s.' % (symbol, start))
-        except:
-            #break
-            print('No data for %s for %s.' % (symbol, start))
-            pass
-    flat_data = [item for sublist in data for item in sublist] # flatten the list
-    return_var = pd.json_normalize(flat_data)
-    return_var = return_var.drop_duplicates()
-    return_var['datetime'] = pd.to_datetime(return_var['formated'])
-    return_var.set_index('datetime',inplace=True) # "inplace" make the changes in the existing df
-    return_var=return_var.drop(return_var.columns[[5,6]],axis=1) # delete last 2 columns
-    return_var=return_var.rename(columns={'o':'Open','h':'High','l':'Low','c':'Close','v':'Volume'})
-    return_var = return_var[['Open','High','Low','Close','Volume']] # Change order of columns
-    return_var = return_var.sort_index()
-    return_var.head()
-    SPYmin = return_var.copy()
-    return_var.index = return_var.index.tz_localize('US/Eastern') # convert to Eastern Time
-
-    # Capital transfers happen on working day, so usually the date will be found
-    capital_transf['SPY_price']=[return_var.loc[capital_transf.Date[x]+ dt.timedelta(hours=11)].Close for x in range(len(capital_transf))]    
-    
-    return_var.to_csv(symbol+'_minute.csv')
-
-EURUSD_url="https://fmpcloud.io/api/v3/historical-price-full/EURUSD?datatype=csv&serietype=line&apikey=d0e821d6fc75c551faef9d5c495136cc"
-EURUSD_daily = pd.read_csv(EURUSD_url,index_col=0)
-capital_transf['SPY_price']=[EURUSD_daily.loc[capital_transf.Date[x]].close for x in range(len(capital_transf))]    
-capital_transf['EURUSD']=[EURUSD_daily.loc[capital_transf.Date[x].strftime("%Y-%m-%d")].close for x in range(len(capital_transf))]
-capital_transf['Bought_SPY']=-capital_transf.Amount*capital_transf.EURUSD/capital_transf.SPY_price
-capital_transf.Bought_SPY.sum()*return_var.iloc[-1].Close/EURUSD_daily.iloc[-1].close
+    Tickers=[]
+    Alpaca_directory = 'D:\\Data\\minute_data\\US\\alpaca_ET_adj\\'
+    Alpaca_directory = 'D:\\Data\\minute_data\\US\\alpaca_ET_adj\\gesamt\\'
+    Tickers.append([x.split('_')[0] for x in os.listdir(Alpaca_directory) if x.endswith(".csv")])
+    column_names = ['symbol','start','end','num_rows']
+    data_summary_df = pd.DataFrame(columns = column_names)
+    alpaca_quotes=pd.DataFrame()
+    for idx,ticker in enumerate(Tickers[0]):
+        nameoffile=Alpaca_directory+ticker+"_ET_adj_alpaca.csv"
+        data = pd.read_csv(nameoffile,index_col='timestamp', parse_dates=['timestamp'])
+        data_summary_df.loc[idx+1] = [ticker, data.index[0], data.index[-1],len(data)]
+        data = data.assign(ticker=ticker)
+        alpaca_quotes=alpaca_quotes.append(data)
+        print("Done {} and still {} to go".format(idx,len(Tickers[0])-idx))
+    data_summary_df.to_excel("Alpaca_minute_quotes_overview.xlsx")
+    alpaca_quotes.to_csv(Alpaca_directory+"Alpaca_min_quotes_ET_adj.csv")
 
 
-now = dt.date.today()
-for i in range(1,61,10):
-    print(now - i* pd.offsets.BDay()+ dt.timedelta(hours=11))
+ 
+# Read ETFDB
+    TOP_US_TICKERS=[]
+    hist_index_member=pd.read_excel('D:\\Data\\Other_data\\ETFDB.xlsx',sheet_name='Stock_tickers',skiprows=0,header=1,usecols=['symbol', 'was_us_index_const','marketCap_Bn','sector']) # read hist index components
+    hist_index_member = hist_index_member.dropna(axis = "rows") # drop any row that has missing values
+    hist_index_member = hist_index_member[hist_index_member.was_us_index_const=="Yes"]
+    [TOP_US_TICKERS.extend(hist_index_member[hist_index_member.sector==i].sort_values(['marketCap_Bn']).symbol[0:10].to_list()) for i in hist_index_member.sector.unique()]
 
-
-# Read 1st and last row of ETF minute data + dates reading ----------------------
+# Read 1st and last row of txt ETF minute data + dates reading ----------------------
 
     import os.path, time
     import datetime as dt

@@ -896,6 +896,11 @@ import datetime
 
         # Extract by date
 
+				ETF_USA['Launch Date'] = pd.to_datetime(ETF_USA['Launch Date'], format='%Y-%m-%d')
+				start = (dt.date.today() - dt.timedelta(days = 20)).strftime("%Y-%m-%d")
+				ETF_USA[ETF_USA['Launch Date'] > start]
+
+
                 # if data col is index:
                     df.loc['2014-01-01':'2014-02-01']
                     df.loc[df.index.month == 3]

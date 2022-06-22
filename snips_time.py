@@ -384,7 +384,11 @@ pd.to_datetime(df)
 
 # Filter df by date -----------------------------------------------------------------------------------------
 
-    
+    ETF_USA['Launch Date'] = pd.to_datetime(ETF_USA['Launch Date'], format='%Y-%m-%d')
+    start = (dt.date.today() - dt.timedelta(days = 20)).strftime("%Y-%m-%d")
+    ETF_USA[ETF_USA['Launch Date'] > start]
+
+
     qvdf=qvdf[pd.to_datetime(qvdf['release_date']).dt.date<last_valid_day.date()]
     qvdf=qvdf[pd.to_datetime(qvdf['end_date']).dt.date>=last_valid_day.date()-relativedelta(months=6)]
 

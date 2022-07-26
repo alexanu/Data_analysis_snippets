@@ -1014,6 +1014,58 @@ import datetime
 
             no_outlier_prices = prices_only[(np.abs(stats.zscore(prices_only)) < 6).all(axis=1)]
 
+
+		# Outliers detection with z-score:
+
+			def detect_outlier(df, threshold):
+				outliers= {}
+				for column in df:
+					mean = np.mean(df[column])
+					std =np.std(df[column])
+					outliers_list = []
+					for y in df[column]:
+						z_score = (y - mean)/std # calculate z-core for each datapoint
+						if np.abs(z_score) > threshold: # if beyond the threshold ...
+							outliers_list.append(y) # ... add the datapoint to outliers list 
+					outliers[column] = outliers_list
+				return outliers
+			
+			def getIdx(my_dict): # gets the indexes of the outliers to remove from our dataset
+				idxs = {}
+				for key in outliers.keys():
+					outlier_idx = []
+					for item in outliers[key]:
+						outlier_idx.append(dataset[dataset[key] == item].index.values[0])
+					idxs[key] = outlier_idx
+				return idxs
+
+			rng = np.arange(2, 3.1, 0.2)
+			out_list_total = []
+			for thresh in rng:
+				outliers = detect_outlier(dataset.iloc[:,4:14], thresh) # get outliers ...
+				outlier_idxs = getIdx(outliers) # ... and their indexes				
+				rem_list = list(outlier_idxs.values())
+				rem_list = [item for sublist in rem_list for item in sublist]
+				num_out = len(set(rem_list))
+				out_list_total.append(num_out)
+				print(f'Total Number of outliers with threshold {round(thresh,2)}- {num_out}, representing {round(num_out/dataset.shape[0]*100,2)}% of the dataset')
+
+			df =  pd.DataFrame({'thresh':rng, 'outliers': out_list_total})
+			fig = px.line(df, y='outliers', x='thresh', markers=True)
+			fig.show()
+
+			outliers = detect_outlier(dataset.iloc[:,4:14], 2.2) # with threshold of 2.2
+			outlier_idxs = getIdx(outliers)
+			for key in outlier_idxs.keys():
+				print(f'Number of outliers for {key} - {len(set(outlier_idxs[key]))}') # number of outliers for each feature
+
+			rem_list = list(outlier_idxs.values())
+			rem_list = [item for sublist in rem_list for item in sublist]
+			dataset.drop(set(rem_list), inplace = True)
+			print(f'The final dataset has the following shape - {dataset.shape}')
+
+
+
 		# Filter only the largest categories
 			df = pd.read_csv("../input/imdb-data/IMDB-Movie-Data.csv")
 			df.columns = map(str.lower, list(df.columns)) # convert headers to lower type

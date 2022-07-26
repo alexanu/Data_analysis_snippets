@@ -27,8 +27,6 @@ pd.to_datetime(df)
                                     parse_dates=['Event_date_GMT'], date_parser=dateparse)
 
 
-
-
 # Dates/times representation, conversion ---------------------------------------------------------
 
     df = pd.DataFrame({'date': [1470195805, 1480195805, 1490195805], 'value': [2, 3, 4]})

@@ -1,4 +1,4 @@
-1) select file to stage or git add -A
+1) git add -A
 2) git commit -m "Adding"
 3) git push
 

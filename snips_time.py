@@ -241,6 +241,9 @@ pd.to_datetime(df)
     today = dt.datetime.now().strftime("%Y-%m-%d")
     n_days_ago = (dt.datetime.now() - dt.timedelta(days=8)).strftime("%Y-%m-%d")
 
+    today= dt.date.today().isoformat()
+    treedaysago=(dt.date.today() - dt.date.timedelta(days= -3)).isoformat()
+
     start = dt.date.today() - dt.timedelta(days = 365*2)
     end = dt.date.today()
 

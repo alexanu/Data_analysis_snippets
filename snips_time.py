@@ -1,5 +1,4 @@
 
-#----------------------------------------------------------------------------------------------------
 # Prep
 
     import pandas as pd
@@ -9,18 +8,19 @@
     import time
     import calendar
 
-#---------------------------------------------------------------------------------------------------
 
+# time it, sleep
 
-df = pd.DataFrame({'year': [2015, 2016], 'month': [2, 3], 'day': [4, 5], 'hour': [10,11]})
-pd.to_datetime(df[['month','day','year']])
-pd.to_datetime(df)
-
+    for ETF in SPDR_ETF:
+        start_time = time.time()
+        ...
+        print('Done %s out of %s in %s seconds', i, len(SPDR_ETF), round(time.time() - start_time, 2))
+        print('sleeping.....')
+        time.sleep(randint(45,60))
 
 
 # Import files with dates
 
-    import datetime as dt
     dateparse = lambda x: dt.datetime.strptime(x, '%Y-%m-%d %H:%M:%S')
     hist_earn_calls=pd.read_excel('D:\\Data\\Other_data\\all_5Y_earn_calls.xlsx',
                                     usecols=['RIC','Ticker', 'ISIN', 'Event_Type', 'Event_date_GMT'],
@@ -30,7 +30,7 @@ pd.to_datetime(df)
 # Dates/times representation, conversion ---------------------------------------------------------
 
     df = pd.DataFrame({'date': [1470195805, 1480195805, 1490195805], 'value': [2, 3, 4]})
-    pd.to_datetime(df['date'], unit='s')
+    df['date'] = pd.to_datetime(df['date'], unit='s')
     df['date'].astype('datetime64[s]')
 
     st=int(dt.datetime(2020,12,1).timestamp())
@@ -45,7 +45,10 @@ pd.to_datetime(df)
         current_date + Period('1M') # same with previous line # => Date(2015, 8, 24)
         current_date.strftime("%Y%m%d") # => '20150724'
 
-        str(dt.datetime.fromtimestamp(time.time()).strftime('[%H:%M:%S] '))
+        dt.datetime.fromtimestamp(time.time()).strftime('%H:%M:%S')
+
+        now_time = SPY['SPY'].daily_bar.timestamp.strftime('%Y-%m-%d %H:%M:%S')
+        yesterday_close_time = SPY['SPY'].previous_daily_bar.timestamp.strftime('%Y-%m-%d %H:%M:%S')
 
     # string to date
 
@@ -73,8 +76,6 @@ pd.to_datetime(df)
         Date.strptime('20160115', '%Y%m%d') # => Date(2016, 1, 15)
         Date.strptime('2016-01-15', '%Y-%m-%d') # => Date(2016, 1, 15)
 
-        friday = pd.Timestamp("2018-01-05")
-        friday.day_name()
 
         df = pd.DataFrame({'date_start': ['3/10/2000', '3/11/2000', '3/12/2000'],
                            'date_end': ['3/11/2000', '3/12/2000', '3/13/2000'],
@@ -114,6 +115,13 @@ pd.to_datetime(df)
 
 # Timezones --------------------------------------------------------------------------------
 
+    hist_bars.index = hist_bars.index.tz_convert('America/New_York') # Convert to market time for easier reading
+    hist_bars.index = hist_bars.index.tz_localize(None) # remove +00:00 from datetime
+
+    df.index = df.index.tz_localize('UTC').tz_convert('US/Eastern') # convert to Eastern Time
+
+
+
     from pytz import timezone
     from pytz import utc
 
@@ -134,7 +142,6 @@ pd.to_datetime(df)
 
     now_time = dt.datetime.now(tz=MARKET_TIMEZONE).strftime("%H:%M")
 
-    df.index = df.index.tz_localize('UTC').tz_convert('US/Eastern') # convert to Eastern Time
 
 
     def utc_to_local(utc_dt):
@@ -229,6 +236,11 @@ pd.to_datetime(df)
 	df.index = pd.to_datetime(df[datecols])
 
 
+    df = pd.DataFrame({'year': [2015, 2016], 'month': [2, 3], 'day': [4, 5], 'hour': [10,11]})
+    pd.to_datetime(df[['month','day','year']])
+    pd.to_datetime(df)
+
+
     # dummy datasets with dates
         import pandas.util.testing as tm
         tm.N, tm.K = 5,3
@@ -247,43 +259,70 @@ pd.to_datetime(df)
     start = dt.date.today() - dt.timedelta(days = 365*2)
     end = dt.date.today()
 
-    current_date = Date(2015, 7, 24) # create date object
-    two_days_later = current_date + 2 # => Date(2015, 7, 26) 
-    current_date + '1M' # => Date(2015, 8, 24)
+    pd.Timestamp.now(tz="US/Eastern").normalize()
+
+    start = (pd.Timestamp.now(tz="US/Eastern") - pd.Timedelta(2, "days")).floor(freq='S'), # T - for minutes, H - for hours
+    end = pd.Timestamp.now(), # do I need to convert to ET? (tz="US/Eastern") or UTC? pd.Timestamp.utcnow()
+
+    date_filter = (pd.Timestamp.now()- pd.Timedelta(5, "minutes")).floor(freq='S'), # orders for last 5 minutes
+
+
+    opening_days = client.market_data.venues.get('XMUN').results[0].opening_days # from lemon - list of dates in datetime.date format
+    dt.date.today() in opening_days
+
+
+    (dt.date.today()+ pd.offsets.BDay(3)).strftime("%Y-%m-%d")
+
+
+    now = pd.Timestamp.now()
+    print("Add a day:", now + pd.offsets.DateOffset(days=1))
+    print("Add a day:", now + pd.offsets.Hour(-1)) # Day, Minute, 
+
+
+    print("Add a week:", now + pd.offsets.DateOffset(weeks=1))
+    print("Add a week:", now + pd.offsets.Week(-1))
+    print("Add a week:", now + pd.offsets.Week(2))
+    print("Add a week:", now + pd.offsets.LastWeekOfMonth())
+    print("Add a week:", now + pd.offsets.DateOffset(weeks=1))
+
+    print("Add a month:", now + pd.offsets.DateOffset(months=1))
+    print("Add a month:", now + pd.offsets.MonthEnd(normalize=True)) # BusinessMonthEnd, QuarterEnd, BQuarterEnd
+    print("Add a month:", now + pd.offsets.MonthBegin(normalize=True)) # BusinessMonthBegin, QuarterBegin, BQuarterBegin 
+
+    print("Add a month:", now + pd.offsets.DateOffset(months=1))
+    print("Add a month:", now + pd.offsets.DateOffset(months=1))
+    print("Add a month:", now + pd.offsets.DateOffset(months=1))
+
+
+
+    print("Add an hour:", now + pd.offsets.DateOffset(hours=1))
+    print("Add a day, replace the hour:", now + pd.offsets.DateOffset(days=1, hour=13))
+    print("Add a month, normalize:", now + pd.offsets.DateOffset(month=1, normalize=True))
+    print("Add 2 days across DST change:", pd.Timestamp("2022-11-05 00:00:00", tz="America/Chicago") + pd.offsets.DateOffset(days=2))
+    print("Add 2 days across DST change (with Timedelta, no adjustment):", pd.Timestamp("2022-11-05 00:00:00", tz="America/Chicago") + pd.Timedelta(days=2))
+
+    print("Beginning of month:", now - pd.offsets.MonthBegin(normalize=True))
+    print("Beginning of quarter:", now - pd.offsets.QuarterBegin(normalize=True))
+    print("Beginning of year:", now - pd.offsets.YearBegin(normalize=True))
+
+
 
     import dateutil.relativedelta
     MONTH_CUTTOFF = 5
     currentDate = dt.date.today() + dt.timedelta(days=1)
     pastDate = currentDate - dateutil.relativedelta.relativedelta(months=MONTH_CUTTOFF)
 
-    # string to datetime -> calculate -> date string for d days ago
-        year, month, day = (int(x) for x in dt.split('-'))
-        date = dt.date(year, month, day) - dt.timedelta(days=d)
-        date.strftime("%Y-%m-%d")
-
 
     def days_between(self, d1, d2):
-        d1 = datetime.datetime.strptime(d1, "%Y-%m-%d")
-        d2 = datetime.datetime.strptime(d2, "%Y-%m-%d")
+        d1 = dt.datetime.strptime(d1, "%Y-%m-%d")
+        d2 = dt.datetime.strptime(d2, "%Y-%m-%d")
         return abs((d2 - d1).days)
 
 
-    for ETF in SPDR_ETF:
-        start_time = time.time()
-        ...
-        print('Done %s out of %s in %s seconds', i, len(SPDR_ETF), round(time.time() - start_time, 2))
-        print('sleeping.....')
-        time.sleep(randint(45,60))
 
     df['CohortIndex_d'] = (df['last_active_date'] - df['signup_date']).dt.days # new column with the difference between the two dates
 
     # Biz days offset
-        two_biz_days=2*pd.offsets.BDay()
-        friday = pd.Timestamp("2018-01-05")
-        friday.day_name()
-        two_biz_days.apply(friday).day_name()
-        (friday+two_biz_days),(friday+two_biz_days).day_name()
-
         now   = dt.date.today()
         day_5 = now - 5 * pd.offsets.BDay()
 
@@ -307,9 +346,25 @@ pd.to_datetime(df)
     date = pd.datetime.strptime(pd.datetime.now().strftime('%Y%m%d'),'%Y%m%d') - pd.offsets.BDay(1)
 
 
-# Attributes of dates ---------------------------------------------------------------------------
-    AAPL.head(10)
+# Dates in pandas ---------------------------------------------------------------------------
+    
+    ETF_USA['Launch Date'] = pd.to_datetime(ETF_USA['Launch Date'], format='%Y-%m-%d')
+    ETF_USA = ETF_USA.set_index('date')
 
+
+
+    df.index = pd.to_datetime(df.index)
+    df["stop"] = df.index + pd.to_timedelta(17, "h")
+    df["start"] = df.stop - pd.to_timedelta(23, "h")
+    df.set_index("start", inplace=True)
+    df.drop(["stop"], axis=1, inplace=True)
+
+
+	friday = pd.Timestamp("2018-01-05")
+    [method for method in dir(friday) if method.startswith('__') is False]
+    friday.day_name()
+
+    # If dataframe index is datetime:
     dir(AAPL.index)
 
     AAPL['Year'] = AAPL.index.year
@@ -337,8 +392,6 @@ pd.to_datetime(df)
 
     weekends_sales = daily_sales[daily_sales.index.dayofweek.isin([5, 6])] # filter weekends
 
-	friday = pd.Timestamp("2018-01-05")
-	friday.day_name()
 
     btc_data = alpaca.get_crypto_bars('BTCUSD', TimeFrame.Day, "2021-02-08", "2021-10-18").df
     btc_data.index = btc_data.index.map(lambda timestamp : timestamp.date) # keep only the date part of our timestamp index
@@ -388,6 +441,8 @@ pd.to_datetime(df)
     ETF_USA['Launch Date'] = pd.to_datetime(ETF_USA['Launch Date'], format='%Y-%m-%d')
     start = (dt.date.today() - dt.timedelta(days = 20)).strftime("%Y-%m-%d")
     ETF_USA[ETF_USA['Launch Date'] > start]
+
+    econ_events[econ_events['Last Observation Date'].dt.strftime('%Y-%m') == '2022-06'].sort_values(by=['GMT Datetime'])
 
 
     qvdf=qvdf[pd.to_datetime(qvdf['release_date']).dt.date<last_valid_day.date()]
@@ -440,8 +495,6 @@ pd.to_datetime(df)
     nyse_extract = nyse.schedule(start_date='2020-12-01', end_date='2021-11-01')
     mcal.date_range(nyse_extract, frequency='1M')
     nyse.valid_days(start_date='2020-12-01', end_date='2021-11-01')
-
-
 
 
 

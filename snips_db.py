@@ -1,3 +1,5 @@
+import pandas as pd
+import time
 
 
 # read txt with "with" and open()
@@ -124,13 +126,13 @@
     alpaca_quotes.to_csv(Alpaca_directory+"Alpaca_min_quotes_ET_adj.csv")
 
 
- 
 # Read ETFDB
     TOP_US_TICKERS=[]
     hist_index_member=pd.read_excel('D:\\Data\\Other_data\\ETFDB.xlsx',sheet_name='Stock_tickers',skiprows=0,header=1,usecols=['symbol', 'was_us_index_const','marketCap_Bn','sector']) # read hist index components
     hist_index_member = hist_index_member.dropna(axis = "rows") # drop any row that has missing values
     hist_index_member = hist_index_member[hist_index_member.was_us_index_const=="Yes"]
     [TOP_US_TICKERS.extend(hist_index_member[hist_index_member.sector==i].sort_values(['marketCap_Bn']).symbol[0:10].to_list()) for i in hist_index_member.sector.unique()]
+
 
 # Read 1st and last row of txt ETF minute data + dates reading ----------------------
 
@@ -613,3 +615,20 @@
             if len(columns) == 2: # if there are only 2 columns (date, ratio), ...
                 output_file.write("{0}, {1} \n".format(columns[0], columns[1])) # ... the data is correct and we can write it
         output_file.close()
+
+
+# Reading big file with modin
+    # pip install modin[ray]
+    
+    Alpaca_directory = 'D:\\Data\\minute_data\\US\\alpaca_ET_adj\\gesamt\\'
+    s = time.time()
+    alpaca_quotes = pd.read_csv(Alpaca_directory+"Alpaca_min_quotes_ET_adj.csv",index_col='timestamp', parse_dates=['timestamp'])
+    e = time.time()
+    print("Pandas Loading Time = {}".format(e-s)) # 190 secs
+
+    import modin.pandas as pd
+    s = time.time()
+    alpaca_quotes = pd.read_csv(Alpaca_directory+"Alpaca_min_quotes_ET_adj.csv",index_col='timestamp', parse_dates=['timestamp'])
+    e = time.time()
+    print("Modin Loading Time = {}".format(e-s)) # 107 secs
+

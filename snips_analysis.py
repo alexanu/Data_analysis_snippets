@@ -684,6 +684,7 @@ import datetime
 
             df_ranked['total_rank']= df_ranked.iloc[:, -4:-1].mean(axis=1)
 
+			SP500_indicators['Sector_Avg_YoY']=SP500_indicators.groupby("Group")["YoY_Price_Chg"].transform('mean')
 
             # create col in specific place
                 SP500_indicators.insert(loc=11, column='Trades_rank', value=SP500_indicators['Trades'].rank(ascending=False)) # rank and create new column in specific location (after 'Trades')

@@ -1,3 +1,13 @@
+# Always do like this:--------------------------
+
+    def main():
+        print("Hello world")
+
+    if __name__ == '__main__':
+        main()
+
+#----------------------------------------------
+
 
 # Help on functions / object
 

@@ -9,13 +9,6 @@
     import time
     import calendar
 
-#---------------------------------------------------------------------------------------------------
-
-
-df = pd.DataFrame({'year': [2015, 2016], 'month': [2, 3], 'day': [4, 5], 'hour': [10,11]})
-pd.to_datetime(df[['month','day','year']])
-pd.to_datetime(df)
-
 
 
 # Import files with dates
@@ -26,6 +19,11 @@ pd.to_datetime(df)
                                     usecols=['RIC','Ticker', 'ISIN', 'Event_Type', 'Event_date_GMT'],
                                     parse_dates=['Event_date_GMT'], date_parser=dateparse)
 
+
+    data = pd.read_csv(nameoffile,index_col='timestamp', parse_dates=['timestamp'])
+
+    dateparse = lambda x: pd.datetime.strptime(x, '%d.%m.%Y %H:%M')
+    read_file = pd.read_csv(stocks_directory+ticker+'.txt', sep='\t', decimal=",",parse_dates={'datetime': ['Date', 'Time']}, date_parser=dateparse,index_col=0)
 
 # Dates/times representation, conversion ---------------------------------------------------------
 
@@ -256,6 +254,13 @@ pd.to_datetime(df)
     currentDate = dt.date.today() + dt.timedelta(days=1)
     pastDate = currentDate - dateutil.relativedelta.relativedelta(months=MONTH_CUTTOFF)
 
+
+    latest_date=df[df.index==max(df.index)]['DATE']
+    latest= pd.datetime.strptime(latest_date[0],'%Y-%m-%d')
+    ndays = pd.datetime.today().date()-latest.date()
+
+
+
     # string to datetime -> calculate -> date string for d days ago
         year, month, day = (int(x) for x in dt.split('-'))
         date = dt.date(year, month, day) - dt.timedelta(days=d)
@@ -329,6 +334,18 @@ pd.to_datetime(df)
         EOQ	(Last_working_day_in_quarter)
     '''
     # https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#time-date-components
+
+
+    ETF_minute['Start_New'] = pd.to_datetime(ETF_minute['Start_New'])
+    ETF_USA['Launch Date'] = pd.to_datetime(ETF_USA['Launch Date'], format='%Y-%m-%d')
+
+
+    df = pd.DataFrame({'year': [2015, 2016], 'month': [2, 3], 'day': [4, 5], 'hour': [10,11]})
+    pd.to_datetime(df[['month','day','year']])
+    pd.to_datetime(df)
+
+
+    latest_date=df[df.index==max(df.index)]['DATE']
 
 
     trading_days_df['DOM'] = np.where(trading_days_df.date.dt.to_period('M') != trading_days_df.date.shift().dt.to_period('M'), 'FDM', 

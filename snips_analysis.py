@@ -515,6 +515,8 @@ import datetime
             SP500_indicators.columns.values[11] = "3MAvgVolume"
             SP500_indicators.columns.values[-11] = "EarnScore_Date"
 
+			ts.columns = [col.lower().replace(' ','_') for col in ts.columns]
+
 
 			# add a prefix or suffix to all columns
 			df.add_prefix("1_")
@@ -593,7 +595,20 @@ import datetime
                 all_hist_capital = all_hist_capital[~all_hist_capital['date'].isin(unique_dates[unique_dates < 5].index)] 
 
                 # delete outliers
-                no_outlier_prices = prices_only[(np.abs(stats.zscore(prices_only)) < 6).all(axis=1)]
+					no_outlier_prices = prices_only[(np.abs(stats.zscore(prices_only)) < 6).all(axis=1)]
+
+
+					arr = [10, 386, 479, 627, 20, 523, 482, 483, 542, 699, 535, 617, 577, 471, 615, 583, 441, 562, 563, 
+					527, 453, 530, 433, 541, 585, 704, 443, 569, 430, 637, 331, 511, 552, 496, 484, 566, 554, 472, 335, 
+					440, 579, 341, 545, 615, 548, 604, 439, 556, 442, 461, 624, 611, 444, 578, 405, 487, 490, 496, 398, 
+					512, 422, 455, 449, 432, 607, 679, 434, 597, 639, 565, 415, 486, 668, 414, 665, 763, 557, 304, 404, 
+					454, 689, 610, 483, 441, 657, 590, 492, 476, 437, 483, 529, 363, 711, 543]
+
+					elements = np.array(arr)
+					mean = np.mean(elements, axis=0)
+					sd = np.std(elements, axis=0)
+					final_list = [x for x in arr if (x > mean - 2 * sd)]
+					final_list = [x for x in final_list if (x < mean + 2 * sd)]
 
 
 		# Appending & Changing rows
@@ -685,6 +700,10 @@ import datetime
             df_ranked['total_rank']= df_ranked.iloc[:, -4:-1].mean(axis=1)
 
 			SP500_indicators['Sector_Avg_YoY']=SP500_indicators.groupby("Group")["YoY_Price_Chg"].transform('mean')
+
+			econ_events['Avg Value']=econ_events.groupby("Instrument")["Actual"].transform('mean')
+			econ_events['StandActual']=(econ_events["Actual"] - econ_events["Avg Value"]) / econ_events["Avg Value"]
+
 
             # create col in specific place
                 SP500_indicators.insert(loc=11, column='Trades_rank', value=SP500_indicators['Trades'].rank(ascending=False)) # rank and create new column in specific location (after 'Trades')
@@ -1081,6 +1100,9 @@ import datetime
 		bins['Group']=pd.cut(values,range(0,101,10))
 
 		df.resample("M")["sales"].sum() # groupby by month
+
+		# Mean of every category
+		econ_events['Avg Value']=econ_events.groupby("Instrument")["Actual"].transform('mean')
 
     	male_df = df[df["gender"] == "M"].groupby("year").sum()
 		AAPL_grouped = AAPL.groupby("Volume")

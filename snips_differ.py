@@ -444,11 +444,6 @@ print('\N{deciduous tree}')
             print('did not break out of for loop')
 
 
-
-
-
-
-
 #Push to G Drive
 
     #https://medium.com/@annissouames99/how-to-upload-files-automatically-to-drive-with-python-ee19bb13dda                                                   
@@ -489,9 +484,8 @@ print('\N{deciduous tree}')
 
 
 # REad environ variables for storing secrets
-
     import os
-''' type in terminal: set EMAIL_MAIN=oanufriyev@gmail.com'''
+    ''' type in terminal: set EMAIL_MAIN=oanufriyev@gmail.com'''
 
     EMAIL_ADDRESS = os.environ.get('EMAIL_MAIN')
     print(os.environ.get('EMAIL_MAIN'))

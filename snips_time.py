@@ -186,12 +186,17 @@
     # Paired periods:
     [print(x,y) for x,y in zip(pd.date_range("2018-01-06", periods=10,freq="30d"),pd.date_range("2018-02-05", periods=10,freq="30d"))]
 
+    for date in pd.bdate_range(start='20100101',end='20221221',freq='BM').strftime('%Y%m%d'):
+        print(date)
+
 
     # Biz dates range
         start = dt.datetime(2019,1,1)
         end = dt.datetime(2019,10,10)
         pd.bdate_range(start,end,freq=10)
-        pd.bdate_range(start,end,freq='BM')
+        pd.bdate_range(start,end,freq='BM',)
+
+        pd.bdate_range('20221001','20221201',freq='BM')
         pd.date_range('2019','2021',freq="BM") 
         pd.bdate_range(start,periods=4,freq="BQS")
             # be careful: bdate_range or BDay() are just calendar days with weekends stripped out (ie. it doesn't take holidays into account).

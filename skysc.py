@@ -1,6 +1,25 @@
 # https://github.com/agespido/SkyScraper/blob/main/src/sky.py
 
 
+
+"""
+Html: 
+<span class="BpkText_bpk-text__ZWIzZ BpkText_bpk-text--caption__NDJhY Price_totalPrice__MTJhN">Gesamt 2.318 €</span>
+
+Selector:
+#app-root > div.FlightsDayView_row__NjQyZ > div > div > div > div:nth-child(1) > div.FlightsResults_dayViewItems__ZDFlO > div:nth-child(1) > div > div > a > div > div.BpkTicket_bpk-ticket__paper__ZTQxN.BpkTicket_bpk-ticket__stub__Y2M3M.Ticket_stub__NGYxN.BpkTicket_bpk-ticket__stub--padded__ZTlkM.BpkTicket_bpk-ticket__stub--horizontal__YjRhZ > div > div > span
+
+JS Path: document.querySelector("#app-root > div.FlightsDayView_row__NjQyZ > div > div > div > div:nth-child(1) > div.FlightsResults_dayViewItems__ZDFlO > div:nth-child(1) > div > div > a > div > div.BpkTicket_bpk-ticket__paper__ZTQxN.BpkTicket_bpk-ticket__stub__Y2M3M.Ticket_stub__NGYxN.BpkTicket_bpk-ticket__stub--padded__ZTlkM.BpkTicket_bpk-ticket__stub--horizontal__YjRhZ > div > div > span")
+
+XPath:
+//*[@id="app-root"]/div[1]/div/div/div/div[1]/div[3]/div[1]/div/div/a/div/div[2]/div/div/span
+
+Full XPath:
+/html/body/div[3]/div[4]/div/div[2]/div[1]/div/div/div/div[1]/div[3]/div[1]/div/div/a/div/div[2]/div/div/span
+
+"""
+
+
 domain_codes = ['de','nl','uk','ua'] # domain
 destination_codes = ['sana'] # destination
 departure_dates = ['230404','230405'] # dep_date

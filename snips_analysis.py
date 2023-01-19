@@ -699,6 +699,7 @@ import datetime
 
             df_ranked['total_rank']= df_ranked.iloc[:, -4:-1].mean(axis=1)
 
+			SP500_indicators['Sector_Avg_YoY']=SP500_indicators.groupby("Group")["YoY_Price_Chg"].transform('mean')
 
 			econ_events['Avg Value']=econ_events.groupby("Instrument")["Actual"].transform('mean')
 			econ_events['StandActual']=(econ_events["Actual"] - econ_events["Avg Value"]) / econ_events["Avg Value"]

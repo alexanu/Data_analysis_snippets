@@ -27,6 +27,11 @@
                                     parse_dates=['Event_date_GMT'], date_parser=dateparse)
 
 
+    data = pd.read_csv(nameoffile,index_col='timestamp', parse_dates=['timestamp'])
+
+    dateparse = lambda x: pd.datetime.strptime(x, '%d.%m.%Y %H:%M')
+    read_file = pd.read_csv(stocks_directory+ticker+'.txt', sep='\t', decimal=",",parse_dates={'datetime': ['Date', 'Time']}, date_parser=dateparse,index_col=0)
+
 # Dates/times representation, conversion ---------------------------------------------------------
 
     df = pd.DataFrame({'date': [1470195805, 1480195805, 1490195805], 'value': [2, 3, 4]})
@@ -181,12 +186,17 @@
     # Paired periods:
     [print(x,y) for x,y in zip(pd.date_range("2018-01-06", periods=10,freq="30d"),pd.date_range("2018-02-05", periods=10,freq="30d"))]
 
+    for date in pd.bdate_range(start='20100101',end='20221221',freq='BM').strftime('%Y%m%d'):
+        print(date)
+
 
     # Biz dates range
         start = dt.datetime(2019,1,1)
         end = dt.datetime(2019,10,10)
         pd.bdate_range(start,end,freq=10)
-        pd.bdate_range(start,end,freq='BM')
+        pd.bdate_range(start,end,freq='BM',)
+
+        pd.bdate_range('20221001','20221201',freq='BM')
         pd.date_range('2019','2021',freq="BM") 
         pd.bdate_range(start,periods=4,freq="BQS")
             # be careful: bdate_range or BDay() are just calendar days with weekends stripped out (ie. it doesn't take holidays into account).
@@ -312,6 +322,11 @@
     currentDate = dt.date.today() + dt.timedelta(days=1)
     pastDate = currentDate - dateutil.relativedelta.relativedelta(months=MONTH_CUTTOFF)
 
+    # string to datetime -> calculate -> date string for d days ago
+        year, month, day = (int(x) for x in dt.split('-'))
+        date = dt.date(year, month, day) - dt.timedelta(days=d)
+        date.strftime("%Y-%m-%d")
+
 
     def days_between(self, d1, d2):
         d1 = dt.datetime.strptime(d1, "%Y-%m-%d")
@@ -384,6 +399,18 @@
         EOQ	(Last_working_day_in_quarter)
     '''
     # https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#time-date-components
+
+
+    ETF_minute['Start_New'] = pd.to_datetime(ETF_minute['Start_New'])
+    ETF_USA['Launch Date'] = pd.to_datetime(ETF_USA['Launch Date'], format='%Y-%m-%d')
+
+
+    df = pd.DataFrame({'year': [2015, 2016], 'month': [2, 3], 'day': [4, 5], 'hour': [10,11]})
+    pd.to_datetime(df[['month','day','year']])
+    pd.to_datetime(df)
+
+
+    latest_date=df[df.index==max(df.index)]['DATE']
 
 
     trading_days_df['DOM'] = np.where(trading_days_df.date.dt.to_period('M') != trading_days_df.date.shift().dt.to_period('M'), 'FDM', 

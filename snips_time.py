@@ -265,7 +265,7 @@
     end = pd.Timestamp.now(), # do I need to convert to ET? (tz="US/Eastern") or UTC? pd.Timestamp.utcnow()
 
     date_filter = (pd.Timestamp.now()- pd.Timedelta(5, "minutes")).floor(freq='S'), # orders for last 5 minutes
-
+    date_filter = (pd.Timestamp.now()- pd.Timedelta(30, "days")).floor(freq='S') # orders for last 30 days
 
     opening_days = client.market_data.venues.get('XMUN').results[0].opening_days # from lemon - list of dates in datetime.date format
     dt.date.today() in opening_days
@@ -444,6 +444,9 @@
 
     econ_events[econ_events['Last Observation Date'].dt.strftime('%Y-%m') == '2022-06'].sort_values(by=['GMT Datetime'])
 
+    clock = trading_client.get_clock()
+    clock.timestamp.strftime('%H:%M') > '15:00'
+    (clock.timestamp.strftime('%H:%M') > '14:00') & (clock.timestamp.strftime('%H:%M') < '15:00')
 
     qvdf=qvdf[pd.to_datetime(qvdf['release_date']).dt.date<last_valid_day.date()]
     qvdf=qvdf[pd.to_datetime(qvdf['end_date']).dt.date>=last_valid_day.date()-relativedelta(months=6)]

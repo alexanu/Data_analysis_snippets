@@ -24,23 +24,31 @@
 
 # update local content from Github: git pull origin main
 
-# download files from github
-    import urllib.request
-    from github import Github
+# read csv from github
+    repo_name ='strategy_config'
+    strategy_name = 'StoRepPlusScore'
 
-    # Do this before: "set GITHUB_TOKEN=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-    gh = Github(os.environ['GITHUB_TOKEN'])
-    repo = gh.get_repo("os-climate/ITR").get_branch(branch="develop-pint-steel-projections")
+    import pandas as pd
+    import io
 
-    if not os.path.isdir("data"):
-        os.mkdir("data")
+    g = Github(github_refinitiv_token)
+    repo = g.get_user().get_repo(repo_name)
+    file_content = repo.get_contents(f'{strategy_name}.csv')
+    df = pd.read_csv(io.StringIO(file_content.decoded_content.decode()))
 
-    for filename in ['data/20220415 ITR Tool Sample Data.xlsx',
-                    'data/OECM_EI_and_production_benchmarks.xlsx',
-                    'utils.py']:
-        if not os.path.isfile(filename):
-            contents = repo.get_contents(f"examples/{filename}") # Get a specific content file
-            urllib.urlretrieve(contents.download_url, filename) # Download file form ContenFile object info
+# upload csv to github
+
+    with open(filename, 'r') as file:
+        content = file.read()
+    g = Github(github_refinitiv_token)
+    repo = g.get_user().get_repo(strategy_config)
+    try: # if a file exists - update it ...
+        contents = repo.get_contents(filename)
+        repo.update_file(contents.path, "committing files", content, contents.sha, branch="main")
+        print(filename + ' UPDATED')
+    except: # if file doesn't exist - create new
+        repo.create_file(filename, "committing files", content, branch="main")
+        print(filename + ' CREATED')
 
 
 # Parsing Github

@@ -75,7 +75,7 @@ import time
         return total_cost
 
 
-# load the tickers from the ticker file
+# load the tickers from the txt ticker file
     ticker_list = [x.strip() for x in open("tickers.txt", "r").readlines()]
     print("Number of equities: ", len(ticker_list))
 
@@ -95,8 +95,7 @@ import time
 # Create list of avialable files
     import os, glob
     import pandas as pd
-    directory = 'D:\\Data\\minute_data\\histdata_2000_2019\\'
-    file_list = glob.glob(directory + '*.zip') # all files in directory
+    file_list = glob.glob(Minute_data_directory + '*.zip') # all files in directory
     hist_data = pd.DataFrame(file_list)
     hist_data['curr_pair'] = hist_data[0].apply(lambda x: x[10:16])
     hist_data['year'] = hist_data[0].apply(lambda x: x[-8:-4])
@@ -109,11 +108,8 @@ import time
     import datetime as dt
 
     Tickers=[]
-    Alpaca_directory = 'D:\\Data\\minute_data\\US\\alpaca_ET_adj\\'
-    Alpaca_directory = 'D:\\Data\\minute_data\\US\\alpaca_ET_adj\\gesamt\\'
     Tickers.append([x.split('_')[0] for x in os.listdir(Alpaca_directory) if x.endswith(".csv")])
-    column_names = ['symbol','start','end','num_rows']
-    data_summary_df = pd.DataFrame(columns = column_names)
+    data_summary_df = pd.DataFrame(columns = ['symbol','start','end','num_rows'])
     alpaca_quotes=pd.DataFrame()
     for idx,ticker in enumerate(Tickers[0]):
         nameoffile=Alpaca_directory+ticker+"_ET_adj_alpaca.csv"
@@ -128,7 +124,7 @@ import time
 
 # Read ETFDB
     TOP_US_TICKERS=[]
-    hist_index_member=pd.read_excel('D:\\Data\\Other_data\\ETFDB.xlsx',sheet_name='Stock_tickers',skiprows=0,header=1,usecols=['symbol', 'was_us_index_const','marketCap_Bn','sector']) # read hist index components
+    hist_index_member=pd.read_excel(ETFDB_path,sheet_name='Stock_tickers',skiprows=0,header=1,usecols=['symbol', 'was_us_index_const','marketCap_Bn','sector']) # read hist index components
     hist_index_member = hist_index_member.dropna(axis = "rows") # drop any row that has missing values
     hist_index_member = hist_index_member[hist_index_member.was_us_index_const=="Yes"]
     [TOP_US_TICKERS.extend(hist_index_member[hist_index_member.sector==i].sort_values(['marketCap_Bn']).symbol[0:10].to_list()) for i in hist_index_member.sector.unique()]
@@ -632,3 +628,59 @@ import time
     e = time.time()
     print("Modin Loading Time = {}".format(e-s)) # 107 secs
 
+# Read - write to Azure blob
+
+    # Read csv/xlsx from blob
+        company_data="ITR_Tool_Sample_Data_Small.xlsx" # this file is provided initially
+        company_data_URL = f'https://{STORAGE_NAME}.blob.core.windows.net/{CONTAINER_NAME}/{company_data}?{BLB_SAS}' # azure
+        tab_company_data_and_emissions = "ITR input data"
+        data = pd.read_excel(company_data_URL,sheet_name=tab_company_data_and_emissions)
+
+    # Read json from blob
+        benchmark_prod_json_file = "benchmark_production_OECM.json"
+        benchmark_prod_json = f'https://{STORAGE_NAME}.blob.core.windows.net/{CONTAINER_NAME}/{benchmark_prod_json_file}?{BLB_SAS}' # azure
+        with urllib.request.urlopen(benchmark_prod_json) as json_file:
+            parsed_json = json.load(json_file)
+
+    # write panda to csv to blob  
+
+        # pip install azure-storage-blob
+        from azure.storage.blob import ContainerClient, BlobServiceClient
+
+        def write_csv(df_path, df):
+            container_client = ContainerClient(env['container_url'],container_name=CONTAINER_NAME,credential=env['container_cred'])
+            output = df.to_csv(index_label="idx", encoding = "utf-8")
+            blob_client = container_client.get_blob_client(df_path)
+            blob_client.upload_blob(output, overwrite=True)
+            return 'success'
+
+        PRICEDOMSIZE=  5  # domain size of prices
+        SIZEDOMSIZE= 100
+        def createTable(N):
+            return pd.DataFrame({
+                    'pA': np.random.randint(0, PRICEDOMSIZE, N),
+                    'pB': np.random.randint(0, PRICEDOMSIZE, N),
+                    'sA': np.random.randint(0, SIZEDOMSIZE, N),
+                    'sB': np.random.randint(0, SIZEDOMSIZE, N)})
+        temp_df = createTable(5)
+
+        def PandaToBlobStorage(dataframe=None, filename=None):
+            upload_file_path = os.path.join('OUTPUT', f"{filename}.csv")
+            blob_service_client = BlobServiceClient.from_connection_string(STORAGE_CONNECTION_STRING)
+            blob_client = blob_service_client.get_blob_client(container=CONTAINER_NAME, blob=upload_file_path)
+            output = dataframe.to_csv(index=False, encoding="utf-8")
+            blob_client.upload_blob(output, blob_type="BlockBlob")
+            return 'success'
+
+        PandaToBlobStorage(temp_df,'test_df')
+
+    # Write local file to Blob
+
+        def LocalFileToBlobStorage(file_path,file_name):
+            blob_service_client = BlobServiceClient.from_connection_string(STORAGE_CONNECTION_STRING)
+            blob_client = blob_service_client.get_blob_client(container=CONTAINER_NAME, blob=file_name)
+            with open(file_path,'rb') as data:
+                blob_client.upload_blob(data)
+            print(f'Uploaded {file_name}')
+            
+        LocalFileToBlobStorage('F:\\ITR_Dash\\requirements.txt','requirements.txt')

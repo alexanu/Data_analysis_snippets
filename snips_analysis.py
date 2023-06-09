@@ -845,6 +845,8 @@ import datetime
 			NQ100.nsmallest(4,'share_volume')['share_volume']
 			SPY_TICK.SIZE.nlargest(10)
 
+			small = pd.concat([snapshot_df.nlargest(20,'FULL'),snapshot_df.nsmallest(20,'FULL')])
+
 			# Largest symbols by capitalization for every sector
 			df.groupby('TRBC Economic Sector Name')['Company Market Cap'].nlargest(3)
 			df.groupby('TRBC Economic Sector Name',as_index=False).apply(lambda x: x.nlargest(3, 'Company Market Cap'))

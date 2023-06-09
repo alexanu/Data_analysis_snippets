@@ -636,6 +636,52 @@ import time
         tab_company_data_and_emissions = "ITR input data"
         data = pd.read_excel(company_data_URL,sheet_name=tab_company_data_and_emissions)
 
+
+
+    # Read all recently modified xlsx files from blob storage
+        connection_string = os.environ['AZURE_STORAGE_CONNECTION_STRING']
+        container_name = os.environ['AZURE_STORAGE_CONTAINER_NAME']
+
+        # get blobs modified in the last 5 hours
+        modified_blobs = []
+        blob_service_client = BlobServiceClient.from_connection_string(connection_string)
+        container_client = blob_service_client.get_container_client(container_name)
+        blobs = container_client.list_blobs()
+        modified_blobs = [blob for blob in blobs if blob.name.endswith((".xlsx", ".xls")) and (datetime.datetime.now(local_timezone) - blob.last_modified.astimezone(local_timezone)).total_seconds() <= 5*60*60]
+
+        # process each modified blob
+        for blob in modified_blobs:
+            blob_client = container_client.get_blob_client(blob.name)
+            blob_data  = blob_client.download_blob().readall()
+            workbook = pd.ExcelFile(blob_data, engine='openpyxl') # read xlsx for getting the tabs names
+            for sheet_name in workbook.sheet_names:
+                sheet_df = pd.read_excel(io.BytesIO(blob_data), sheet_name=sheet_name)
+
+
+    # update xlsx file on blob storage with new data
+        blob_name = "am_fees_database.xlsx"
+        new_data = pd.DataFrame()
+        connection_string = os.environ['AZURE_FEE_BLOB_STORAGE_CONNECTION_STRING']
+        container_name = os.environ['AZURE_FEE_CONTAINER_NAME']
+        blob_service_client = BlobServiceClient.from_connection_string(connection_string)
+        blob_client = blob_service_client.get_blob_client(container_name, blob_name)
+
+        # Download the existing file
+        download_stream = blob_client.download_blob().readall()
+        existing_data = pd.read_excel(io.BytesIO(download_stream))
+
+        combined_data = pd.concat([existing_data, new_data]) # Append new data
+
+        # Save DataFrame to a BytesIO object
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl', mode='xlsx') as writer:
+            combined_data.to_excel(writer)
+        output.seek(0)
+
+        blob_client.upload_blob(output, overwrite=True) # Upload the updated file
+
+
+
     # Read json from blob
         benchmark_prod_json_file = "benchmark_production_OECM.json"
         benchmark_prod_json = f'https://{STORAGE_NAME}.blob.core.windows.net/{CONTAINER_NAME}/{benchmark_prod_json_file}?{BLB_SAS}' # azure

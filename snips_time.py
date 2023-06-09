@@ -120,11 +120,13 @@
 
 # Timezones --------------------------------------------------------------------------------
 
+    many_snaps_test['Now_time'] = many_snaps_test['Now_time'].dt.tz_localize(None) # remove +00:00 from datetime
+    many_snaps_test['price time'] = many_snaps_test['price time'].dt.tz_convert('America/New_York').dt.tz_localize(None)
+                                                                    # convert from UTC to ET.......... and remove +00:00 from datetime
+
     hist_bars.index = hist_bars.index.tz_convert('America/New_York') # Convert to market time for easier reading
-    hist_bars.index = hist_bars.index.tz_localize(None) # remove +00:00 from datetime
-
-    df.index = df.index.tz_localize('UTC').tz_convert('US/Eastern') # convert to Eastern Time
-
+    hist_bars.index = hist_bars.index.tz_localize(None) # remove +00:00 from datetimejhm
+    df.index = df.index.tz_localize('UTC').tz_convert('US/Eastern') # convert to Eastern TimeH
 
 
     from pytz import timezone

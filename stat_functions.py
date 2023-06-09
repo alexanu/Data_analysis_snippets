@@ -2,6 +2,29 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
+
+# Linear Regression
+    from sklearn import linear_model
+    from sklearn.metrics import mean_squared_error, r2_score
+
+    def linear_regression(basis_X_train, basis_y_train, basis_X_test,basis_y_test):
+        regr = linear_model.LinearRegression()
+        regr.fit(basis_X_train, basis_y_train) # Train the model using the training sets
+        basis_y_pred = regr.predict(basis_X_test) # Make predictions using the testing set
+
+        print('Coefficients: \n', regr.coef_)
+        print("Mean squared error: %.2f" % mean_squared_error(basis_y_test, basis_y_pred))
+        print('Variance score: %.2f' % r2_score(basis_y_test, basis_y_pred)) # Explained variance score: 1 is perfect prediction
+
+        plt.scatter(basis_y_pred, basis_y_test,  color='black')
+        plt.plot(basis_y_test, basis_y_test, color='blue', linewidth=3)
+        plt.xlabel('Y(actual)')
+        plt.ylabel('Y(Predicted)')
+        plt.show()
+        
+        return regr, basis_y_pred
+
+
 # Augmented Dickey Fuller test
 
     from statsmodels.tsa.stattools import adfuller

@@ -2,6 +2,23 @@ import pandas as pd
 import numpy as np
 import datetime
 
+
+# Often used:
+		result["Asset"].unique().tolist()
+		temp_df=pd.DataFrame(list(zip(names,lst)),columns=["Name","Age"])
+		blank_df=pd.DataFrame(columns=["Name","Age"]) # blank placeholder for df
+		my_list = list(set(my_list)) # remove dublicates
+		AAPL.dtypes
+		my_df.rename(columns={'Constituent RIC': 'ric', 'Constituent Name': 'name'}, inplace=True)
+		df.fillna({'temp':0,'wind':0,'status':'sunny'})
+		df.drop(list_of_cols_to_delete, axis=1, inplace=True)
+		result['EntryTime'] = pd.to_datetime(result['EntryTime'], format= '%Y/%m/%d %H:%M')
+		df[[one,two]] = df[orig].str.split(separator,expand=True) # split column into 2 columns
+		market_data.iloc[:250] # Select the first 250 rows
+		SPY_TICK.sample(frac=0.001)
+		df.loc[df['column_name'].isin(list_of_strings)]
+
+
 # Series creation
 		pd.Series([1,2,3,4])
 		pd.Series([3,4,5,6,7],index=['a','b','c','d','e'])
@@ -19,7 +36,6 @@ import datetime
 		a[1::] = [42] * 15
 		a[1:8:2] = 16
 
-
 		import pandas.util.testing as tm
 		tm.N, tm.K = 5,3
 		tm.makeFloatSeries(), tm.makeBoolIndex(), tm.makeCategoricalIndex()
@@ -30,13 +46,7 @@ import datetime
 			from itertools import permutations 
 			my_list = [1,2,3]
 			perm = list(permutations(my_list))
-
-				#(1, 2, 3)
-				#(1, 3, 2)
-				#(2, 1, 3)
-				#(2, 3, 1)
-				#(3, 1, 2)
-				#(3, 2, 1)
+			# [(1, 2, 3), (1, 3, 2), (2, 1, 3), (2, 3, 1), (3, 1, 2), (3, 2, 1)]
 
 
 # Create dataframes 
@@ -52,20 +62,6 @@ import datetime
 
         seq = np.random.choice(['make', 'miss'], size=10, p=[.65, .35])
         streaks = pd.Series(seq, name='result').to_frame()
-
-
-		# Generate and plot random walks
-			# Generate normally distributed errors
-			randos = [np.random.randn(100) for i in range(100)]
-			y = np.random.randn(100)
-			# Generate random walks
-			randows = [[sum(rando[:i+1]) for i in range(100)] for rando in randos]
-			yw = [sum(y[:i+1]) for i in range(100)]
-
-			plt.figure(figsize=(15,7))
-			for i in range(100):
-				plt.plot(randows[i], alpha=0.5)
-			plt.show()  
 
 
 		# create a dataframe
@@ -105,7 +101,6 @@ import datetime
 
 # Importing data 
 		SPX500=pd.read_csv("D:\\Data\\tick_data\\tick_data_zorro\\SPX500_2015.csv")
-		SPY_TICK=pd.read_csv("D:\\Data\\tick_data\\SPY_TICK_TRADE.csv")
 		GBPCAD=pd.read_csv("D:\\Data\\minute_data\\GBPCAD_2017.csv", header=False, parse_dates=['Date'])
 		NQ100=pd.read_csv("http://www.nasdaq.com/quotes/nasdaq-100-stocks.aspx?render=download",
 						usecols=[0,1,2,5],
@@ -124,45 +119,13 @@ import datetime
 		df = pd.read_csv("name_age.csv", na_values=["na", "not available"])
 
 		def CompleteGender(cell):
-    			if cell=='m':
-    					return 'Male'
-				elif cell = 'f':
-    					return 'Female'
-				else:
-    					return 'NA'
-		df_new = pd.read_csv("name_age.csv", converters = {"gender" : completeGender})
-
-
-        # read parqueat is much faster than csv
-            df = pd.read_csv("large.csv") # 13 sec for 700mb file
-            df = pd.read_csv("large.csv", engine="pyarrow") # available in from pd 1.4; 6 sec
-            df = pd.read_csv("large.csv")
-            df.to_parquet("large.parquet", compression=None)
-            df = pd.read_parquet("large.parquet", engine="fastparquet") # 2 sec
-
-
-
-		# from quandl
-			import quandl
-			start = datetime.datetime(2016,1,1)
-			end = datetime.date.today()
-			
-			apple, microsoft, google = (quandl.get("WIKI/" + s, start_date=start, end_date=end) 
-										for s in ["AAPL", "MSFT", "GOOG"])
-			
-			stocks = pd.DataFrame({"AAPL": apple["Adj. Close"],
-								"MSFT": microsoft["Adj. Close"],
-								"GOOG": google["Adj. Close"]})
-
-			spyderdat = pd.read_csv("/home/curtis/Downloads/HistoricalQuotes.csv") # from http://www.nasdaq.com/symbol/spy/historical
-			spyderdat = pd.DataFrame(spyderdat.loc[:, ["open", "high", "low", "close", "close"]]
-									.iloc[1:].as_matrix(),
-									index=pd.DatetimeIndex(spyderdat.iloc[1:, 0]),
-									columns=["Open", "High", "Low", "Close", "Adj Close"])
-						.sort_index()
-			spyder = spyderdat.loc[start:end]
-			stocks = stocks.join(spyder.loc[:, "Adj Close"])
-							.rename(columns={"Adj Close": "SPY"})
+			if cell == 'm':
+				return 'Male'
+			elif cell == 'f':
+				return 'Female'
+			else:
+				return 'NA'
+		df_new = pd.read_csv("name_age.csv", converters = {"gender" : CompleteGender})
 
 
 # Analysing series -------------------------------------------------------
@@ -184,22 +147,6 @@ import datetime
 		li = [1,2,3,'a','b','c']
 		'a' in li # true
 
-		s = input()
-		up    = len([i for i in ['1', '2', '3'] if i in s]) ==  0 # true if s does not contains one of these
-		right = len([i for i in ['3', '6', '9', '0'] if i in s]) == 0
-		left  = len([i for i in ['1', '4', '7', '0'] if i in s]) == 0
-		down  = len([i for i in ['7', '9', '0'] if i in s]) == 0
-		ok = not(up or right or left or down) #if the is at least one true then it is not uniqe and print NO
-												#if all of them are 0 then not 0 == true and print YES
-		if ok:
-			print("YES")
-		else: #not ok
-			print("NO")
-
-		arr = [1, 2, 13, 10, 320, 34, 0, 10, 0, 4, 5, 16, 0, 0, 0, 0, 9, 8, 7, 0, 10, 11]
-		np.diff(arr)>10
-		np.equal(arr, 10).view(np.int8)
-
 
 		# the most often occuring names using collection.Counter
 			from collections import Counter
@@ -209,6 +156,7 @@ import datetime
 			cheese_count = Counter(cheese) # maps items to number of occurrences
 			# use update(more_words) method to easily add more elements to counter
 			print(cheese_count.most_common(3)) # Prints: [('parmesan', 4), ('cheddar', 3), ('gouda', 2)]
+
 
 		# Takes in an array of numbers and finds consecutive runs of the number to_find
 			def find_runs(arr, to_find):
@@ -284,46 +232,6 @@ import datetime
             B= np.random.randint(0,2,5)
             equal = np.allclose(A,B) # Assuming identical shape of the arrays and a tolerance for the comparison of values 
             equal = np.array_equal(A,B) # Checking both the shape and the element values, no tolerance (values have to be exactly equal)
-
-
-
-		def difference(a, b):
-			_b = set(b)
-			return [item for item in a if item not in _b]
-		difference([1, 2, 3], [1, 2, 4]) # [3]
-
-		def all_equal(lst):
-    			return lst[1:] == lst[:-1]
-		all_equal([1, 2, 3, 4, 5, 6]) # False
-		all_equal([1, 1, 1, 1]) # True
-
-		def all_unique(lst):
-			return len(lst) == len(set(lst))
-		x = [1, 2, 3, 4, 5, 6]
-		y = [1, 2, 2, 3, 4, 5]
-		all_unique(x) # True
-		all_unique(y) # False
-
-
-	# Comparison of dataframes
-		def overlap_by_symbol(old_df: pd.DataFrame, new_df: pd.DataFrame, overlap: int):
-			"""
-			Overlap dataframes for timestamp continuity. 
-			Prepend the end of old_df to the beginning of new_df, grouped by symbol.
-			If no symbol exists, just overlap the dataframes
-			:param old_df: old dataframe
-			:param new_df: new dataframe
-			:param overlap: number of time steps to overlap
-			:return DataFrame with changes
-			"""
-			if isinstance(old_df.index, pd.MultiIndex) and isinstance(new_df.index, pd.MultiIndex):
-				old_df_tail = old_df.groupby(level='symbol').tail(overlap)
-
-				old_df_tail = old_df_tail.drop(set(old_df_tail.index.get_level_values('symbol')) - set(new_df.index.get_level_values('symbol')), level='symbol')
-
-				return pd.concat([old_df_tail, new_df], sort=True)
-			else:
-				return pd.concat([old_df.tail(overlap), new_df], sort=True)
 
 	# Compare 2 datasets of quotes: inner merger
 		def pair_data_verifier(array_df_data, pair_tickers, threshold=10):
@@ -536,9 +444,7 @@ import datetime
         # Dealing with N/A-s
         
             # different fillna for every column
-                df.fillna({	'temp':0,
-                            'wind':0,
-                            'status':'sunny'})
+                df.fillna({'temp':0,'wind':0,'status':'sunny'})
                 df.fillna(df.mean())
                 df.fillna(df.mean()['temperature':'windSpeed'])
 
@@ -548,7 +454,7 @@ import datetime
                     affected_rows = df.isnull().sum()
                     missing_list = []
                     for each_col in affected_cols:
-                    missing_list.append(each_col)
+	                    missing_list.append(each_col)
                 for each in missing_list:
                     df[each] = df[each].interpolate()
 
@@ -632,17 +538,13 @@ import datetime
                         provider.data['fundamental_data'].loc[provider.data['fundamental_data']['company_name'] == company_name, 'company_id'] = 'C' + str(index + 1)
                         provider.data['fundamental_data'].loc[provider.data['fundamental_data']['company_name'] == company_name, 'company_isic'] = 'C' + str(index + 1)
                         provider.data['target_data'].loc[provider.data['target_data']['company_name'] == company_name, 'company_id'] = 'C' + str(index + 1)
-                        portfolio.loc[portfolio['company_name'] == company_name, 'company_name'] = 'Company' + str(
-                            index + 1)
-                        provider.data['fundamental_data'].loc[provider.data['fundamental_data']['company_name'] == company_name, 'company_name'] = 'Company' + str(
-                            index + 1)
-                        provider.data['target_data'].loc[provider.data['target_data']['company_name'] == company_name, 'company_name'] = 'Company' + str(
-                            index + 1)
+                        portfolio.loc[portfolio['company_name'] == company_name, 'company_name'] = 'Company' + str(index + 1)
+                        provider.data['fundamental_data'].loc[provider.data['fundamental_data']['company_name'] == company_name, 'company_name'] = 'Company' + str(index + 1)
+                        provider.data['target_data'].loc[provider.data['target_data']['company_name'] == company_name, 'company_name'] = 'Company' + str(index + 1)
                     for index, company_name in enumerate(provider.data['fundamental_data']['company_name'].unique()):
                         if company_name not in portfolio['company_name'].unique():
                             provider.data['fundamental_data'].loc[provider.data['fundamental_data']['company_name'] == company_name, 'company_id'] = '_' + str(index + 1)
-                            provider.data['fundamental_data'].loc[provider.data['fundamental_data']['company_name'] == company_name, 'company_name'] = 'Company_' + str(
-                                index + 1)
+                            provider.data['fundamental_data'].loc[provider.data['fundamental_data']['company_name'] == company_name, 'company_name'] = 'Company_' + str(index + 1)
                     return portfolio, provider
 
 
@@ -915,6 +817,67 @@ import datetime
                 data = pd.Series(np.random.randint(50,101,20))
                 limit(data, 40,70)
 
+			# identify outliers using 3 sigma approach
+				df_ma = df[['simple_rtn']].rolling(window=21).agg(['mean', 'std']) #calculate rolling mean and standard deviation
+				df_ma.columns = df_ma.columns.droplevel() # drop multi-level index
+				df_outliers = df.join(df_ma)
+				df_outliers['outlier'] = [1 if (x > mu + 3 * sigma) 
+											or (x < mu - 3 * sigma) else 0 
+										for x, mu, sigma in zip(df_outliers.simple_rtn, 
+																	df_outliers['mean'], 
+																	df_outliers['std'])] 
+				outliers = df_outliers.loc[df_outliers['outlier'] == 1, ['simple_rtn']]
+				no_outlier_prices = prices_only[(np.abs(stats.zscore(prices_only)) < 6).all(axis=1)]
+
+			# Outliers detection with z-score:
+
+				def detect_outlier(df, threshold):
+					outliers= {}
+					for column in df:
+						mean = np.mean(df[column])
+						std =np.std(df[column])
+						outliers_list = []
+						for y in df[column]:
+							z_score = (y - mean)/std # calculate z-core for each datapoint
+							if np.abs(z_score) > threshold: # if beyond the threshold ...
+								outliers_list.append(y) # ... add the datapoint to outliers list 
+						outliers[column] = outliers_list
+					return outliers
+				
+				def getIdx(my_dict): # gets the indexes of the outliers to remove from our dataset
+					idxs = {}
+					for key in outliers.keys():
+						outlier_idx = []
+						for item in outliers[key]:
+							outlier_idx.append(dataset[dataset[key] == item].index.values[0])
+						idxs[key] = outlier_idx
+					return idxs
+
+				rng = np.arange(2, 3.1, 0.2)
+				out_list_total = []
+				for thresh in rng:
+					outliers = detect_outlier(dataset.iloc[:,4:14], thresh) # get outliers ...
+					outlier_idxs = getIdx(outliers) # ... and their indexes				
+					rem_list = list(outlier_idxs.values())
+					rem_list = [item for sublist in rem_list for item in sublist]
+					num_out = len(set(rem_list))
+					out_list_total.append(num_out)
+					print(f'Total Number of outliers with threshold {round(thresh,2)}- {num_out}, representing {round(num_out/dataset.shape[0]*100,2)}% of the dataset')
+
+				df =  pd.DataFrame({'thresh':rng, 'outliers': out_list_total})
+				fig = px.line(df, y='outliers', x='thresh', markers=True)
+				fig.show()
+
+				outliers = detect_outlier(dataset.iloc[:,4:14], 2.2) # with threshold of 2.2
+				outlier_idxs = getIdx(outliers)
+				for key in outlier_idxs.keys():
+					print(f'Number of outliers for {key} - {len(set(outlier_idxs[key]))}') # number of outliers for each feature
+
+				rem_list = list(outlier_idxs.values())
+				rem_list = [item for sublist in rem_list for item in sublist]
+				dataset.drop(set(rem_list), inplace = True)
+				print(f'The final dataset has the following shape - {dataset.shape}')
+
 
         # Extract by date
 
@@ -976,123 +939,42 @@ import datetime
 
 
         # Extract by string
-                # remove rows wher name of a company has on certain letters
-                    qvdf=qvdf[~qvdf['name'].str[-2:].str.contains('LP')]
-                    qvdf=qvdf[~qvdf['name'].str[-3:].str.contains('LLC')]
+			# remove rows wher name of a company has on certain letters
+				qvdf=qvdf[~qvdf['name'].str[-2:].str.contains('LP')]
+				qvdf=qvdf[~qvdf['name'].str[-3:].str.contains('LLC')]
 
-                df.loc[df['column_name'].isin(some_values)]
-                df.loc[~df['column_name'].isin(some_values)]
-                df.loc[df['B'].isin(['one','three'])]
+			df.loc[df['column_name'].isin(some_values)]
+			df.loc[~df['column_name'].isin(some_values)]
+			df.loc[df['B'].isin(['one','three'])]
 
-                s=qvdf['industry_category'].isin([None,"Banking","Financial Services","Real Estate","Utilities"])
-                qvdf=qvdf[~s]
+			s=qvdf['industry_category'].isin([None,"Banking","Financial Services","Real Estate","Utilities"])
+			qvdf=qvdf[~s]
 
-                df['symbol'].isin(["F","AAPL","NVDA","MBI","TSLA"])
+			df['symbol'].isin(["F","AAPL","NVDA","MBI","TSLA"])
 
-                mask = SPY_TICK['SALE_CONDITION'].values == 'F'
-                SPY_TICK[mask]
-                mask = SPY_TICK['SALE_CONDITION'] == 'F'
-                SPY_TICK[mask]
+			mask = SPY_TICK['SALE_CONDITION'].values == 'F'
+			SPY_TICK[mask]
+			mask = SPY_TICK['SALE_CONDITION'] == 'F'
+			SPY_TICK[mask]
 
-                ETFs=MAIN_STOCKS.loc[MAIN_STOCKS['type'].isin(['ETF','ETC'])]
+			ETFs=MAIN_STOCKS.loc[MAIN_STOCKS['type'].isin(['ETF','ETC'])]
 
-                # Selecting unique values from dataframe: the quickest is via numpy
-                    df = pd.DataFrame({'Col1': ['Bob', 'Joe', 'Bill', 'Mary', 'Joe'],
-                                    'Col2': ['Joe', 'Steve', 'Bob', 'Bob', 'Steve'],
-                                    'Col3': np.random.random(5)})
-                    np.unique(df[['Col1', 'Col2']].values) # array(['Bill', 'Bob', 'Joe', 'Mary', 'Steve'], dtype=object)
-                    set(np.concatenate(df.values))
+			# Selecting unique values from dataframe: the quickest is via numpy
+				df = pd.DataFrame({'Col1': ['Bob', 'Joe', 'Bill', 'Mary', 'Joe'],
+								'Col2': ['Joe', 'Steve', 'Bob', 'Bob', 'Steve'],
+								'Col3': np.random.random(5)})
+				np.unique(df[['Col1', 'Col2']].values) # array(['Bill', 'Bob', 'Joe', 'Mary', 'Steve'], dtype=object)
+				set(np.concatenate(df.values))
 
-                # select rows, where symbol appears <10 times
-                    all_hist_capital[all_hist_capital['symbol'].isin(unique_symb[unique_symb < 10].index)] 
-
-
-                # separate df for every category
-                    def seperated_dataframes(df, treatment):
-                        treat_col = data[treatment] # col with the treatment
-                        dframes_sep = [] # list to hold seperated dataframes 
-                        for cat in categories(treat_col): # Go through all categories of the treatment
-                            df = data[treat_col == cat] # select all rows that match the category        
-                            dframes_sep.append(df) # append the selected dataframe
-                        return dframes_sep
-
-                    self.stocks = self.df['Symbol_Root'].unique()
-                    for stock in self.stocks:
-                        # Do aggregation
-                        stock_rows = self.df.loc[self.df['Symbol_Root'] == stock]
+			# select rows, where symbol appears <10 times
+				all_hist_capital[all_hist_capital['symbol'].isin(unique_symb[unique_symb < 10].index)] 
 
 
-		# identify outliers using 3 sigma approach
-
-			df_ma = df[['simple_rtn']].rolling(window=21).agg(['mean', 'std']) #calculate rolling mean and standard deviation
-			df_ma.columns = df_ma.columns.droplevel() # drop multi-level index
-			df_outliers = df.join(df_ma)
-			df_outliers['outlier'] = [1 if (x > mu + 3 * sigma) 
-										or (x < mu - 3 * sigma) else 0 
-									for x, mu, sigma in zip(df_outliers.simple_rtn, 
-																df_outliers['mean'], 
-																df_outliers['std'])] 
-			outliers = df_outliers.loc[df_outliers['outlier'] == 1, ['simple_rtn']]
-
-            no_outlier_prices = prices_only[(np.abs(stats.zscore(prices_only)) < 6).all(axis=1)]
-
-
-		# Outliers detection with z-score:
-
-			def detect_outlier(df, threshold):
-				outliers= {}
-				for column in df:
-					mean = np.mean(df[column])
-					std =np.std(df[column])
-					outliers_list = []
-					for y in df[column]:
-						z_score = (y - mean)/std # calculate z-core for each datapoint
-						if np.abs(z_score) > threshold: # if beyond the threshold ...
-							outliers_list.append(y) # ... add the datapoint to outliers list 
-					outliers[column] = outliers_list
-				return outliers
-			
-			def getIdx(my_dict): # gets the indexes of the outliers to remove from our dataset
-				idxs = {}
-				for key in outliers.keys():
-					outlier_idx = []
-					for item in outliers[key]:
-						outlier_idx.append(dataset[dataset[key] == item].index.values[0])
-					idxs[key] = outlier_idx
-				return idxs
-
-			rng = np.arange(2, 3.1, 0.2)
-			out_list_total = []
-			for thresh in rng:
-				outliers = detect_outlier(dataset.iloc[:,4:14], thresh) # get outliers ...
-				outlier_idxs = getIdx(outliers) # ... and their indexes				
-				rem_list = list(outlier_idxs.values())
-				rem_list = [item for sublist in rem_list for item in sublist]
-				num_out = len(set(rem_list))
-				out_list_total.append(num_out)
-				print(f'Total Number of outliers with threshold {round(thresh,2)}- {num_out}, representing {round(num_out/dataset.shape[0]*100,2)}% of the dataset')
-
-			df =  pd.DataFrame({'thresh':rng, 'outliers': out_list_total})
-			fig = px.line(df, y='outliers', x='thresh', markers=True)
-			fig.show()
-
-			outliers = detect_outlier(dataset.iloc[:,4:14], 2.2) # with threshold of 2.2
-			outlier_idxs = getIdx(outliers)
-			for key in outlier_idxs.keys():
-				print(f'Number of outliers for {key} - {len(set(outlier_idxs[key]))}') # number of outliers for each feature
-
-			rem_list = list(outlier_idxs.values())
-			rem_list = [item for sublist in rem_list for item in sublist]
-			dataset.drop(set(rem_list), inplace = True)
-			print(f'The final dataset has the following shape - {dataset.shape}')
-
-
-
-		# Filter only the largest categories
-			df = pd.read_csv("../input/imdb-data/IMDB-Movie-Data.csv")
-			df.columns = map(str.lower, list(df.columns)) # convert headers to lower type
-			top_genre = df["genre"].value_counts().to_frame()[0:3].index # select top 3 genre
-			df_top = df[df["genre"].isin(top_genre)] # now let's filter the df with the top genre
+			# Filter only the largest categories
+				df = pd.read_csv("../input/imdb-data/IMDB-Movie-Data.csv")
+				df.columns = map(str.lower, list(df.columns)) # convert headers to lower type
+				top_genre = df["genre"].value_counts().to_frame()[0:3].index # select top 3 genre
+				df_top = df[df["genre"].isin(top_genre)] # now let's filter the df with the top genre
 			
 
 # Grouping ----------------------------------------------------------------------------------------------
@@ -1188,19 +1070,6 @@ import datetime
 			print(cheese_count.most_common(3)) # Prints: [('parmesan', 4), ('cheddar', 3), ('gouda', 2)]
 
 
-# Pairwise iteration btw columns of dataframe
-	from scipy.stats import ttest_ind
-	from itertools import combinations
-
-	N, M = 20, 4
-	A = np.random.randn(N, M) + np.arange(M)/4 # generate a random array, add a small constant to each column
-	df = pd.DataFrame(A) # converts numpy array to pandas df
-	pairwise_pvalues = pd.DataFrame(columns=df.columns, index=df.columns, dtype=float)
-	for (label1, column1), (label2, column2) in combinations(df.items(), 2):
-		pairwise_pvalues.loc[label1, label2] = ttest_ind(column1, column2)[1]
-		pairwise_pvalues.loc[label2, label1] = pairwise_pvalues.loc[label1, label2]
-	pairwise_pvalues.round(3)
-
 
 # List comprehension examples
 	color_list = ["green", "red", "blue", "yellow"]
@@ -1240,45 +1109,8 @@ import datetime
 	prices = [i if i > 0 else 0 for i in original_prices]
 
 
-    # From Mayer book:
-        # 1
-            employees = {'Alice' : 100000,'Bob' : 99817,'Carol' : 122908,'Frank' : 88123,'Eve' : 93121}
-
-            top_earners = []
-            for key, val in employees.items():
-                if val >= 100000:
-                    top_earners.append((key,val))
-            print(top_earners)
-
-            # or:
-            top_earners = [(k, v) for k, v in employees.items() if v >= 100000]
-
-        # 2
-            text = '''
-            Call me Ishmael. Some years ago - never mind how long precisely - having
-            little or no money in my purse, and nothing particular to interest me
-            on shore, I thought I would sail about a little and see the watery part
-            of the world. It is a way I have of driving off the spleen, and regulating
-            the circulation. - Moby Dick'''
-
-            w = [[x for x in line.split() if len(x)>3] for line in text.split('\n')]
-
-        # 3
-            txt = ['Lambda-Funktionen sind anonyme Funktionen.',
-            'anonyme Funktionen haben keinen Namen.',
-            'Funktionen sind Objekte in Python.']
-
-            mark = map(lambda s: (True, s) if 'anonyme' in s else (False, s), txt)
-            print(list(mark))
-
-        #4
-            price = [[9.9, 9.8, 9.8, 9.4, 9.5, 9.7],
-                    [9.5, 9.4, 9.4, 9.3, 9.2, 9.1],
-                    [8.4, 7.9, 7.9, 8.1, 8.0, 8.0],
-                    [7.1, 5.9, 4.8, 4.8, 4.7, 3.9]]
-
-            sample = [line[::2] for line in price]
-
+	employees = {'Alice' : 100000,'Bob' : 99817,'Carol' : 122908,'Frank' : 88123,'Eve' : 93121}
+	top_earners = [(k, v) for k, v in employees.items() if v >= 100000]
 
 
 # Bid prices offered by the two buyers, pA and pB. Bid sizes, sA and sB. 

@@ -628,6 +628,20 @@ import time
     e = time.time()
     print("Modin Loading Time = {}".format(e-s)) # 107 secs
 
+
+# Read big files with pandas 2.0
+    df = pd.read_csv("data/hn.csv") # 12s
+    df_arrow = pd.read_csv("data/hn.csv", engine='pyarrow', dtype_backend='pyarrow') # 329ms
+    df.info() # Investigating the dtypes of each DataFrame
+
+# read big files with parquet
+    df = pd.read_csv("large.csv") # 13 sec for 700mb file
+    df = pd.read_csv("large.csv", engine="pyarrow") # available in from pd 1.4; 6 sec
+    df = pd.read_csv("large.csv")
+    df.to_parquet("large.parquet", compression=None)
+    df = pd.read_parquet("large.parquet", engine="fastparquet") # 2 sec
+
+
 # Read - write to Azure blob
 
     # Read csv/xlsx from blob
